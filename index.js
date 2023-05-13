@@ -1,5 +1,9 @@
 import html2canvas from 'html2canvas';
 
+if (process.env.NODE_ENV !== 'production') {
+    console.log('Looks like we are in development mode!');
+}
+
 // const box = `
 // <div id='box'>
 //   <button id='button-1'>Button</button>
