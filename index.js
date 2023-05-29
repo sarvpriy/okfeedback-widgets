@@ -17,8 +17,10 @@ if (process.env.NODE_ENV !== 'production') {
 // on click subit, send image+text to backend
 
 window.addEventListener('load', () => {
-    console.log("---------window loaded--------------")
-    const options = JSON.parse(document.getElementById("feddback-script").getAttribute("data-feedback-opts"))
+
+    document.head.innerHTML += `<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />`;
+    // console.log("---------window loaded--------------")
+    const { title, position } = JSON.parse(document.getElementById("feddback-script").getAttribute("data-feedback-opts"))
 
 
     // window.addEventListener("scroll", () => {
@@ -31,44 +33,62 @@ window.addEventListener('load', () => {
     // })
 
 
-    const feedbackContainer = createFeedbackContainer()
+    const feedbackContainer = createFeedbackContainer(position) // main container #feedbackWidget
     const inputContainer = createFeedbackInputContainer()
-    const feedbackInput = createFeedbackInput();
+    const feedbackInput = createFeedbackInputBox();
 
     const submitButton = createSubmitButton();
     submitButton.addEventListener('click', (e) => {
-        console.log(feedbackInput.value)
         const feedbackText = feedbackInput.value
+        const blobSrc = document.getElementById("thumbnail").getAttribute("src");
+        const blobType = "png"
+        const blob = blobSrc;
+        const clientEmail = "";
 
-        // const tempCanvas = document.createElement("canvas")
-        // tempCanvas.width = "1248px";
-        // tempCanvas.height = "1200px";
-        // const tmpctx = tempCanvas.getContext("2d")
-        // const { left, top, right, bottom, x: newX, y: newY, width: bodyWidth, height: bodyHeight } = document.body.getBoundingClientRect()
-        // console.log(document.body.getBoundingClientRect())
-        // tmpctx.drawImage(image, newX, newY, drawingCanvas.width, drawingCanvas.height, 0, 0, drawingCanvas.width, drawingCanvas.height);
+        console.log(feedbackText)
+        console.log(blob)
 
-        // tmpctx.drawImage(document.getElementById("canvas-img"), 0, 0, 1248, 1200, 0, 0, 1248, 1200);
-        // let img = new Image();
-        // img.src = tempCanvas.toDataURL("image/png")
-        // img.id = "canvas-new-img"
+        if (feedbackText || blob) {
+            // const tempCanvas = document.createElement("canvas")
+            // tempCanvas.width = "1248px";
+            // tempCanvas.height = "1200px";
+            // const tmpctx = tempCanvas.getContext("2d")
+            // const { left, top, right, bottom, x: newX, y: newY, width: bodyWidth, height: bodyHeight } = document.body.getBoundingClientRect()
+            // console.log(document.body.getBoundingClientRect())
+            // tmpctx.drawImage(image, newX, newY, drawingCanvas.width, drawingCanvas.height, 0, 0, drawingCanvas.width, drawingCanvas.height);
 
-        // document.getElementById("canvas-img").src = tempCanvas.toDataURL("image/png")
+            // tmpctx.drawImage(document.getElementById("canvas-img"), 0, 0, 1248, 1200, 0, 0, 1248, 1200);
+            // let img = new Image();
+            // img.src = tempCanvas.toDataURL("image/png")
+            // img.id = "canvas-new-img"
 
-        // fetch("https://dummy.restapiexample.com/api/v1/create", {
-        //     method: "POST",
-        //     mode: "cors",
-        //     cache: "no-cache",
-        //     credentials: "same-origin",
-        //     headers: {
-        //         "Content-Type": "application/json",
-        //         // 'Content-Type': 'application/x-www-form-urlencoded',
-        //     },
-        //     redirect: "follow",
-        //     referrerPolicy: "no-referrer",
-        //     body: JSON.stringify({ feedbackText })
-        // }).then((res) => console.log(res))
-        //     .catch((e) => alert(e))
+            // document.getElementById("canvas-img").src = tempCanvas.toDataURL("image/png")
+
+            // fetch("https://s1koft5j5f.execute-api.ap-south-1.amazonaws.com/dev/feedback", {
+            //     method: "POST",
+            //     mode: "cors",
+            //     // cache: "no-cache",
+            //     // credentials: "same-origin",
+            //     headers: {
+            //         "Content-Type": "application/json",
+            //         // 'Content-Type': 'application/x-www-form-urlencoded',
+            //     },
+            //     // redirect: "follow",
+            //     // referrerPolicy: "no-referrer",
+            //     body: JSON.stringify({
+            //         "browser": fnBrowserDetect(),
+            //         "userAgent": window.navigator.userAgent,
+            //         "url": window.location.href,
+            //         "clientEmail": "client@lpv.io",
+            //         "text": feedbackText,
+            //         "blobType": blobType,
+            //         "blob": blob
+            //     })
+            // }).then((res) => console.log(res))
+            //     .catch((e) => alert(e))
+
+        }
+
     })
 
 
@@ -77,6 +97,8 @@ window.addEventListener('load', () => {
 
         document.body.style["min-width"] = "fit-content"
         document.body.style["min-height"] = "fit-content"
+
+        feedbackContainer.style["visibility"] = "hidden"
 
         const { left, top, right, bottom, x, y, width, height } = document.body.getBoundingClientRect()
         console.log("---------capture--------------")
@@ -195,11 +217,11 @@ window.addEventListener('load', () => {
         window.addEventListener('resize', resize);
         // });
 
-        const okbutton = document.createElement('button');
-        okbutton.innerText = 'OK';
-        okbutton.id = 'okbutton';
-        okbutton.style = `position: fixed;z-index:10000000000; bottom: 10px;left: 40%;box-shadow: 0px 4px 24px rgba(0, 0, 0, 0.1);padding: 12px;background: #fff;border-radius: 32px;`
+        const okbutton = createCaptureOkButton();
         okbutton.addEventListener("click", (e) => {
+            okbutton.remove()
+            cancelButton.remove()
+
             console.log("---------ok button--------------")
             console.log("drawingCanvas width", document.getElementById("drawingCanvas").width)
             console.log("drawingCanvas height", document.getElementById("drawingCanvas").height)
@@ -304,13 +326,20 @@ window.addEventListener('load', () => {
                 // const newcanvas = document.getElementById("canvas")
                 // console.log(newcanvas.offsetHeight, newcanvas.clientHeight, newcanvas.scrollTop)
 
-                let image = new Image();
-                image.id = "canvas-img"
-                image.style = "margin-left: 0px;border: 1px solid blue;"
+                // let image = new Image();
+                // image.id = "canvas-img"
+                // image.style = "margin-left: 0px;border: 1px solid blue;"
+                let thumbnail = document.getElementById("thumbnail")
+                thumbnail.src = canvas.toDataURL("image/png");
+                thumbnailContainer.style["display"] = "block"
+                feedbackContainer.style["visibility"] = "unset"
+                captureButton.style["display"] = "none";
+                recordButton.style["display"] = "none";
+
                 // image.width = Math.abs(window.innerWidth)
                 // image.height = Math.abs(window.innerHeight)
-                image.src = canvas.toDataURL("image/png");
-                document.body.appendChild(image);
+                // image.src = canvas.toDataURL("image/png");
+                // document.body.appendChild(image);
                 // document.normalize()
 
                 // document.body.style["min-width"] = "unset"
@@ -336,39 +365,119 @@ window.addEventListener('load', () => {
             });
 
             drawingCanvas.remove()
-            okbutton.remove()
-            cancelButton.remove()
             // document.body.removeAttribute("style")
             // document.body.style["overflow"] = "hidden";
         })
 
-        const cancelButton = document.createElement('button');
-        cancelButton.innerText = 'Cancel';
-        cancelButton.id = 'cancelButton';
-        cancelButton.style = `position: fixed;z-index:10000000000; bottom: 10px;left: 50%;box-shadow: 0px 4px 24px rgba(0, 0, 0, 0.1);padding: 12px;background: #fff;border-radius: 32px;`
+        const cancelButton = createCaptureCancelButton()
         cancelButton.addEventListener("click", (e) => {
             // const element = document.getElementById("div-02");
-            canvas.remove()
-            okbutton.remove()
-            cancelButton.remove()
+            drawingCanvas.remove()
+            okCancelContainer.remove()
+            feedbackContainer.style["visibility"] = "unset"
+            // okbutton.remove()
+            // cancelButton.remove()
             // document.body.removeAttribute("style")
         })
-        document.body.appendChild(okbutton)
-        document.body.appendChild(cancelButton)
+        const okCancelContainer = createOkCancelContainer()
+        okCancelContainer.appendChild(okbutton)
+        okCancelContainer.appendChild(cancelButton)
+
+        document.body.appendChild(okCancelContainer)
         document.body.appendChild(drawingCanvas)
 
     })
 
-    const feedbackButton = createFeedbackButton()
-    feedbackButton.addEventListener('click', (e) => {
-        if (inputContainer.style.display === "block") {
-            inputContainer.style.display = "none";
-            document.normalize();
-        }
-        else if (inputContainer.style.display === "none")
-            inputContainer.style.display = "block";
+    const recordButton = createRecordScreenButton()
+    recordButton.addEventListener("click", async () => {
+        // hide input container
+        inputContainer.style.display = "none";
+        feedbackButton.innerText = "Feedback"
 
-        // startCapture()
+        let stream = await startCapture();
+        let mimeType = 'video/webm';
+        let mediaRecorder = createRecorder(stream, mimeType);
+
+        // console.log("started")
+        // const icon = document.createElement("span")
+        // icon.setAttribute('class', "material-icons")
+        // icon.innerText = "close"
+        // icon.style = `
+        //         position:fixed;
+        //         top:50px;
+        //         right:50px;
+        //         cursor:pointer;
+        //         color: #222;
+        //     `;
+        // icon.addEventListener("click", (e) => {
+        //     mediaRecorder.stop();
+        //     icon.remove()
+        // })
+        // document.body.appendChild(icon)
+
+
+        let ctlr = false;
+        let shift = false;
+        document.addEventListener('keypress', (event) => {
+            var name = event.key;
+            var code = event.code;
+            if (code === "KeyX" && ctlr && shift) {
+                mediaRecorder.stop();
+                // Alert the key name and key code on keydown
+                // console.log(`Key pressed ${name} \r\n Key code value: ${code}`);
+            }
+        }, false);
+
+        document.addEventListener('keydown', (event) => {
+            var name = event.key;
+            var code = event.code;
+            if (name === 'Control') {
+                // Do nothing.
+                ctlr = true;
+            }
+            if (name === 'Shift') {
+                // Do nothing.
+                shift = true;
+            }
+            // if (event.ctrlKey) {
+            //     console.log(`Combination of ctrlKey + ${name} \n Key code Value: ${code}`);
+            // } else {
+            //     console.log(`cdnl Key pressed ${name} \n Key code Value: ${code}`);
+            // }
+        }, false);
+        // Add event listener on keyup
+        document.addEventListener('keyup', (event) => {
+            var name = event.key;
+            if (name === 'Control') {
+                ctlr = false;
+                // console.log('Control key released');
+            }
+            if (name === 'Shift') {
+                shift = false;
+                // console.log('Shift key released');
+            }
+            // if (name === 'Alt') {
+            //     console.log('Alt key released');
+            // }
+        }, false);
+
+        // After some time stop the recording by 
+        setTimeout(() => {
+            mediaRecorder.stop();
+        }, 10000)
+    })
+
+    const feedbackButton = createFeedbackButton(position)
+    feedbackButton.addEventListener('click', (e) => {
+        if (inputContainer.style.display === "flex") {
+            inputContainer.style.display = "none";
+            feedbackButton.innerText = "Feedback"
+            // document.normalize();
+        }
+        else if (inputContainer.style.display === "none") {
+            inputContainer.style.display = "flex";
+            feedbackButton.innerText = "Hide me"
+        }
 
         // const backdrop = document.createElement("div")
         // backdrop.style.height = "100vh"
@@ -380,16 +489,104 @@ window.addEventListener('load', () => {
         // backdrop.style.opacity = "0.2"
     })
 
+
+    const buttonContainer = createButtonContainer()
+    const thumbnailContainer = createThumbnailContainer()
+    const thumbnail = createThumbnail()
+    thumbnailContainer.appendChild(thumbnail)
+
+    const thumbnailCancel = createThumbnailCancel()
+    thumbnailCancel.addEventListener("click", (e) => {
+        // remove captured image
+        thumbnailContainer.style["display"] = "none"
+        // feedbackContainer.style["visibility"] = "unset"
+        captureButton.style["display"] = "block"
+        recordButton.style["display"] = "block"
+    });
+    thumbnail.addEventListener("click", (e) => {
+        const modal = document.createElement("div")
+        modal.style = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0,0,0,0.8);
+        `;
+        const fullImg = document.createElement("img")
+        fullImg.src = thumbnail.src
+        fullImg.style = `
+            max-width: 75%;
+        `;
+
+        const icon = document.createElement("span")
+        icon.setAttribute('class', "material-icons")
+        icon.innerText = "close"
+        icon.style = `
+            position:absolute;
+            top:50px;
+            right:50px;
+            cursor:pointer;
+            color: #fff;
+        `;
+        icon.addEventListener("click", (e) => {
+            modal.remove()
+        })
+        modal.appendChild(fullImg)
+        modal.appendChild(icon)
+        document.body.appendChild(modal)
+    })
+    thumbnailContainer.appendChild(thumbnailCancel);
+
+    const videoContainer = createVideoContainer()
+    const recordCancel = createRecordCancel()
+    recordCancel.addEventListener("click", (e) => {
+        // remove captured image
+        document.getElementById("screenRecordVideo").remove()
+        videoContainer.style["display"] = "none"
+
+        // feedbackContainer.style["visibility"] = "unset"
+        captureButton.style["display"] = "block"
+        recordButton.style["display"] = "block"
+    });
+    videoContainer.appendChild(recordCancel);
+
+    buttonContainer.appendChild(thumbnailContainer)
+    buttonContainer.appendChild(videoContainer)
+    buttonContainer.appendChild(captureButton)
+    buttonContainer.appendChild(recordButton)
+    buttonContainer.appendChild(submitButton)
+
     inputContainer.appendChild(feedbackInput)
-    inputContainer.appendChild(submitButton)
-    inputContainer.appendChild(captureButton)
+    inputContainer.appendChild(buttonContainer)
+    inputContainer.appendChild(Object.assign(
+        document.createElement('div'),
+        {
+            id: 'powered-by',
+            innerHTML: `powered by <a href="#" >feedback</a> </br>(Press Ctl + Shift + x to stop screen recording)`,
+            style: `font-size: 10px;`
+        }
+    ))
 
     feedbackContainer.appendChild(inputContainer);
     feedbackContainer.appendChild(feedbackButton);
 
     const dFrag = document.createDocumentFragment();
     dFrag.appendChild(feedbackContainer);
+
     document.body.appendChild(dFrag);
+
+    // document.addEventListener('click', function (event) {
+    //     var elem = document.getElementById('feedbackWidget');
+    //     const outsideClick = !elem.contains(event.target);
+    //     if (outsideClick) {
+    //         inputContainer.style.display = "none";
+    //     }
+    // });
 
     // document.document.body.appendChild(
     //     Object.assign(
@@ -416,36 +613,83 @@ window.addEventListener('load', () => {
 
 })
 
-function createFeedbackContainer() {
+
+function createFeedbackContainer(position) {
     const box = document.createElement("div");
     box.id = "feedbackWidget";
-    box.style["position"] = "fixed";
-    box.style["bottom"] = "10px";
-    box.style["left"] = "50%";
-    box.style["box-shadow"] = "0px 4px 24px rgba(0, 0, 0, 0.1)";
-    box.style["padding"] = "12px";
-    box.style["background"] = "#fff";
-    box.style["border-radius"] = "32px";
+    // get option here
+    const bottomStyles = `
+        position: fixed;
+        bottom: 50px;
+        left: 50%;
+        box-shadow: rgba(0,0,0,0.35) 0 6px 100px 0;
+        padding: 12px;
+        background: #fff;
+        border-radius: 16px;
+    `;
+    const rightStyles = `
+        position: fixed;
+        right: 46px;
+        top: 42%;
+        box-shadow: rgba(0,0,0,0.35) 0 6px 100px 0;
+        padding: 12px;
+        background: rgb(255, 255, 255);
+        border-radius: 16px;
+    `;
+    const leftStyles = `
+        position: fixed;
+        left: 50px;
+        top: 42%;
+        box-shadow: rgba(0,0,0,0.35) 0 6px 100px 0;
+        padding: 12px;
+        background: rgb(255, 255, 255);
+        border-radius: 16px;
+    `;
+    if (position === "left") box.style = leftStyles
+    if (position === "bottom") box.style = bottomStyles
+    if (position === "right") box.style = rightStyles
+
     return box
 }
 
-function loadFeedbackWidget() {
+
+function createButtonContainer() {
+    const box = document.createElement("div");
+    box.id = "buttonContainer";
+    box.style = `
+        display:flex;
+        flex-direction:row;
+        gap:12px;
+    `;
+    return box
 }
 
 function createFeedbackInputContainer() {
     const inputBox = document.createElement("div");
     inputBox.id = "inputBox"
-    inputBox.style.display = "none";
+    inputBox.style = `
+        display:none;
+        flex-direction: column;
+        gap:16px;
+    `;
     return inputBox
 }
 
-
-function createFeedbackInput() {
-    const input = document.createElement("input");
+function createFeedbackInputBox() {
+    const input = document.createElement("textarea");
     input.id = "input"
-    input.type = "text"
-    input.style = "border: 1px solid;"
-
+    // input.type = "text"
+    input.style = `
+        width: 100%;
+        height: 100px;
+        padding: 8px;
+        box-sizing: border-box;
+        border: 2px solid #ccc;
+        border-radius: 4px;
+        background-color: #f8f8f8;
+        font-size: 16px;
+        resize: none;
+    `
     return input;
 }
 
@@ -453,48 +697,362 @@ function createSubmitButton() {
     const submitButton = document.createElement("button");
     submitButton.id = "submitButton"
     submitButton.innerText = 'Submit';
+    submitButton.style = `
+        border: none;
+        color: white;
+        padding: 8px 12px;
+        font-size: 16px;
+        cursor: pointer;
+        height: 50px;
+        background-color: #04AA6D;
+    `;
     return submitButton
-}
-function createFeedbackButton() {
-    const button = document.createElement('button');
-    button.innerText = 'Feedback';
-    button.id = 'feedbackButton';
-    return button
 }
 function createCaptureButton() {
     const captureButton = document.createElement("button");
+    // <span class="material-icons">
+    //     add_a_photo
+    // </span>
+    const icon = document.createElement("span")
+    icon.setAttribute('class', "material-icons")
+    icon.innerText = "add_a_photo"
+    captureButton.appendChild(icon);
     captureButton.id = "captureButton"
-    captureButton.innerText = 'capture';
+    captureButton.style = `
+        cursor: pointer;
+        padding: 8px 16px;
+        border: 1px dashed #e3e3e3;
+    `;
     return captureButton
 }
+function createRecordScreenButton() {
 
+    const screenRecordButton = document.createElement("button");
+    // <span class="material-icons">
+    //     add_a_photo
+    // </span>
+    const icon = document.createElement("span")
+    icon.setAttribute('class', "material-icons")
+    icon.innerText = "videocam"
+    screenRecordButton.appendChild(icon);
+    screenRecordButton.id = "recordScreenButton"
+    screenRecordButton.style = `
+        cursor: pointer;
+        padding: 8px 16px;
+        border: 1px dashed #e3e3e3;
+    `;
+    return screenRecordButton
+}
+function createFeedbackButton(position) {
+    const button = document.createElement('button');
+    button.innerText = 'Feedback';
+    button.id = 'feedbackButton';
+    const rightStyles = `
+        height: 45px;
+        border: 1px solid rgb(221, 221, 221);
+        background: rgb(51, 51, 51);
+        width: 120px;
+        font-weight: 600;
+        color: white;
+        transform: rotate(-90deg);
+        text-align: center;
+        position: fixed;
+        right: -45px;
+        top: 50%;
+    `;
+    const bottomStyles = `
+        height: 45px;
+        border: 1px solid rgb(221, 221, 221);
+        background: rgb(51, 51, 51);
+        width: 120px;
+        font-weight: 600;
+        color: white;
+        text-align: center;
+        position: fixed;
+        right: unset;
+        top: unset;
+        left: 50%;
+        bottom: 0px;
+    `;
+    const leftStyles = `
+        height: 45px;
+        border: 1px solid rgb(221, 221, 221);
+        background: rgb(51, 51, 51);
+        width: 120px;
+        font-weight: 600;
+        color: white;
+        transform: rotate(90deg);
+        text-align: center;
+        position: fixed;
+        left: -45px;
+        top: 50%;
+    `;
+    if (position === "left") button.style = leftStyles
+    if (position === "bottom") button.style = bottomStyles
+    if (position === "right") button.style = rightStyles
+    return button
+}
+function createOkCancelContainer() {
+    const box = document.createElement('div');
+    box.id = "okCancelContainer";
+    box.style = `
+        display:flex;
+        flex-direction:row;
+        position: fixed;
+        z-index:10000000000;
+        bottom: 10px;
+        left: 50%;
+    `
+    return box
+}
+function createCaptureOkButton() {
+    const okbutton = document.createElement('button');
+
+    const icon = document.createElement("span")
+    icon.setAttribute('class', "material-icons")
+    icon.innerText = "check"
+    okbutton.appendChild(icon);
+
+    // okbutton.innerText = 'OK';
+    okbutton.id = 'okbutton';
+    okbutton.style = `
+        box-shadow: 0px 4px 24px rgba(0, 0, 0, 0.1);
+        padding: 6px 12px;
+        background: #fff;
+    `
+    return okbutton
+}
+function createCaptureCancelButton() {
+    const cancelButton = document.createElement('button');
+
+    const icon = document.createElement("span")
+    icon.setAttribute('class', "material-icons")
+    icon.innerText = "close"
+    cancelButton.appendChild(icon);
+
+    // cancelButton.innerHTML = 'Cancel';
+    cancelButton.id = 'cancelButton';
+    cancelButton.style = `
+        box-shadow: 0px 4px 24px rgba(0, 0, 0, 0.1);
+        padding: 6px 12px;
+        background: #fff;
+    `
+    return cancelButton
+}
+function createThumbnailContainer() {
+    const box = document.createElement('div');
+    box.id = "thumbnailContainer";
+    box.style = `
+        position:relative;
+        display: none;
+        border: 1px solid #ddd;
+    `
+    return box
+}
+function createThumbnail() {
+    const thumbnail = document.createElement("img");
+    thumbnail.id = "thumbnail";
+    thumbnail.width = "100"
+    // thumbnail.height = "50"
+    thumbnail.style = `
+        border-radius: 4px;
+        padding: 5px;
+    `;
+    thumbnail.addEventListener("mouseenter", () => {
+        thumbnail.style["opacity"] = "0.7"
+        // thumbnail.style["transform"] = "scale(3)"
+    })
+    thumbnail.addEventListener("mouseleave", () => {
+        thumbnail.style["opacity"] = "1"
+        // thumbnail.style["transform"] = "scale(1)"
+    })
+    // thumbnail.style["display"] = "none"
+    return thumbnail
+}
+
+function createThumbnailCancel() {
+    const icon = document.createElement("span")
+    // <i class="material-icons">add_circle</i>
+    icon.setAttribute('class', "material-icons")
+    icon.innerText = "cancel"
+    icon.style = `
+        position:absolute;
+        top:0;
+        right:0;
+        cursor:pointer;
+    `;
+    return icon
+}
+function createVideoContainer() {
+    const box = document.createElement('div');
+    box.id = "videoContainer";
+    box.style = `
+        position: relative;
+        display: none;
+        border: 1px solid rgb(221, 221, 221);
+        padding: 4px;
+        border-radius: 4px;
+    `
+    return box
+}
+function createRecordCancel() {
+    const icon = document.createElement("span")
+    // <i class="material-icons">add_circle</i>
+    icon.setAttribute('class', "material-icons")
+    icon.innerText = "cancel"
+    icon.style = `
+        position:absolute;
+        top:-8px;
+        right:-8px;
+        cursor:pointer;
+    `;
+    return icon
+}
 
 // ----- screen sharing -------
-function startCapture() {
+async function startCapture() {
 
     // Create a new CaptureController instance
     const controller = new CaptureController();
+
     // Prompt the user to share a tab, window, or screen.
-    navigator.mediaDevices
-        .getDisplayMedia({ controller, preferCurrentTab: true, video: true, selfBrowserSurface: "include" })
-        .catch((err) => {
-            console.error(err);
-            return null;
-        }).then((stream) => {
-            // Query the displaySurface value of the captured video track
-            const [track] = stream.getVideoTracks();
-            const displaySurface = track.getSettings().displaySurface;
+    const stream = await navigator.mediaDevices
+        .getDisplayMedia({
+            controller,
+            preferCurrentTab: true,
+            audio: true,
+            // audio: {
+            //     echoCancellation: true,
+            //     noiseSuppression: true,
+            //     sampleRate: 44100,
+            //     suppressLocalAudioPlayback: true,
+            // },
+            video: {
+                mediaSource: "screen",
+                // displaySurface: "window"
+            },
+            selfBrowserSurface: "include"
+            // selfBrowserSurface: "exclude",
+            // surfaceSwitching: "include",
+            // systemAudio: "exclude",
+        })
+    // .catch((err) => {
+    //     console.error(err);
+    //     return null;
+    // }).then((stream) => {
+    //     console.log(stream)
+    //     // Query the displaySurface value of the captured video track
+    //     const [track] = stream.getVideoTracks();
+    //     const displaySurface = track.getSettings().displaySurface;
 
-            if (displaySurface == "browser") {
-                // Focus the captured tab.
-                controller.setFocusBehavior("focus-captured-surface");
-            } else if (displaySurface == "window") {
-                // Do not move focus to the captured window.
-                // Keep the capturing page focused.
-                controller.setFocusBehavior("no-focus-change");
-            }
 
-        });
+    // Query the displaySurface value of the captured video track
+
+    const [track] = stream.getVideoTracks();
+    // {
+    //     contentHint: "",
+    //     enabled: true,
+    //     id: "6d0fad02-b3a0-49e8-a9d9-cd7b0a2e1039",
+    //     kind: "video",
+    //     label: "current-web-contents-media-stream://518D5116A4FF4363A7D2BBDE75527713",
+    //     muted: false,
+    //     oncapturehandlechange: null,
+    //     onended: null,
+    //     onmute: null,
+    //     onunmute: null,
+    //     readyState: "live"
+    // }
+    const displaySurface = track.getSettings().displaySurface;
+    // {
+    //     "aspectRatio": 1.7777777777777777,
+    //     "cursor": "motion",
+    //     "deviceId": "web-contents-media-stream://591:4",
+    //     "displaySurface": "browser",
+    //     "frameRate": 30,
+    //     "height": 1080,
+    //     "logicalSurface": true,
+    //     "resizeMode": "crop-and-scale",
+    //     "width": 1920
+    // }
+
+    if (displaySurface == "browser") {
+        // Focus the captured tab.
+        controller.setFocusBehavior("focus-captured-surface");
+    } else if (displaySurface == "window") {
+        // Do not move focus to the captured window.
+        // Keep the capturing page focused.
+        controller.setFocusBehavior("no-focus-change");
+    }
+
+    return stream
+
+}
+
+function createRecorder(stream, mimeType) {
+    // the stream data is stored in this array
+    let recordedChunks = [];
+
+    const mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.ondataavailable = function (e) {
+        if (e.data.size > 0) {
+            recordedChunks.push(e.data);
+        }
+    };
+    mediaRecorder.onstop = function () {
+        saveFile(recordedChunks);
+        recordedChunks = [];
+    };
+    mediaRecorder.start(200); // For every 200ms the stream data will be stored in a separate chunk.
+    return mediaRecorder;
+}
+
+
+function saveFile(recordedChunks) {
+
+    const blob = new Blob(recordedChunks, {
+        type: 'video/webm'
+    });
+    let filename = makeid(15),
+        downloadLink = document.createElement('a');
+
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.download = `${filename}.webm`;
+    console.log(downloadLink)
+
+    const video = document.createElement("video")
+    video.id = "screenRecordVideo"
+    video.width = "120"
+    video.controls = "true"
+    video.innerHTML = `
+        <source src="${downloadLink}" type="video/webm">
+        Your browser does not support the video tag.
+    `;
+    const videoContainer = document.getElementById('videoContainer')
+    videoContainer.style["display"] = "block"
+    document.getElementById("captureButton").style["display"] = "none";
+    document.getElementById("recordScreenButton").style["display"] = "none";
+    document.getElementById("inputBox").style["display"] = "flex";
+    document.getElementById("feedbackButton").innerText = "Hide me"
+    videoContainer.appendChild(video)
+
+    // return downloadLink
+
+    // document.body.appendChild(downloadLink);
+    // downloadLink.click();
+    // URL.revokeObjectURL(blob); // clear from memory
+    // document.body.removeChild(downloadLink);
+}
+function makeid(length) {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    let counter = 0;
+    while (counter < length) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        counter += 1;
+    }
+    return result;
 }
 
 function cropImage({
@@ -523,4 +1081,25 @@ function cropImage({
         ctx.drawImage(originalImage, newX, newY, newWidth, newHeight, 0, 0, newWidth, newHeight);
         // downloadImage(downloadName);
     });
+}
+
+function fnBrowserDetect() {
+
+    let userAgent = navigator.userAgent;
+    let browserName;
+
+    if (userAgent.match(/chrome|chromium|crios/i)) {
+        browserName = "chrome";
+    } else if (userAgent.match(/firefox|fxios/i)) {
+        browserName = "firefox";
+    } else if (userAgent.match(/safari/i)) {
+        browserName = "safari";
+    } else if (userAgent.match(/opr\//i)) {
+        browserName = "opera";
+    } else if (userAgent.match(/edg/i)) {
+        browserName = "edge";
+    } else {
+        browserName = "No browser detection";
+    }
+    return browserName
 }
