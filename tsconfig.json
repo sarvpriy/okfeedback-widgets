@@ -1,7 +1,39 @@
 {
-    "compilerOptions": {
-        "noImplicitAny": true,
-        "target": "ES5",
-        "module": "ES2015"
-    }
+  "compilerOptions":{
+      "target": "es2017",
+      "lib": [
+        "dom",
+        "dom.iterable",
+        "esnext"
+      ],
+      "allowJs": true,
+      "skipLibCheck": true,
+      "strict": true,
+      "forceConsistentCasingInFileNames": true,
+      "noEmit": true,
+      "esModuleInterop": true,
+      "module": "esnext",
+      "moduleResolution": "node",
+      "resolveJsonModule": true,
+      "isolatedModules": true,
+      "jsx": "preserve",
+      "incremental": true,
+      "plugins": [
+        {
+          "name": "next"
+        }
+      ],
+      "paths": {
+        "@/*": [
+          "./*"
+        ]
+      },
+    },
+    "include": ["**/*.ts"],
+    // "include": [
+    //   "feedback/feedback.ts"
+    // ],
+    "exclude": [
+      "node_modules"
+    ]
 }

@@ -1,9 +1,24 @@
-import html2canvas from 'html2canvas';
+// animate
+// add greeting text
+// can take email
+
+import html2canvas from "html2canvas";
 
 if (process.env.NODE_ENV !== 'production') {
     console.log('Looks like we are in development mode!');
 }
 
+// type Feedback = {
+//     "customerId": string,
+//     "text": string,
+//     "media": string,
+//     "url": string,
+//     "browser": string,
+//     "userAgent": string,
+//     "clientEmail": string
+// }
+
+let recordingBlob = null;
 // const box = `
 // <div id='box'>
 //   <button id='button-1'>Button</button>
@@ -16,132 +31,196 @@ if (process.env.NODE_ENV !== 'production') {
 // on click ok, show image that can be cancelled
 // on click subit, send image+text to backend
 
-window.addEventListener('load', () => {
+/**
+ * @todos
+ *  - check the browser and if video recording is on
+ *  - options - title, positions, custom positions, takeScreenshot, recordScreen, takeEmail
+ *  - fast loading
+ *  - add pencel in drawing canvas
+ *  - add thanks animations
+ *  - add header
+ * 
+ */
 
-    document.head.innerHTML += `<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />`;
+const DEV_WIDGET_ID = "okfeedback-developer-feedback-widget";
+const loadWidget = () => {
+    // document.head.innerHTML += `
+    // <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    // <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    // `;
     // console.log("---------window loaded--------------")
-    const { title, position } = JSON.parse(document.getElementById("feddback-script").getAttribute("data-feedback-opts"))
 
+    // title, positions, custom positions, widgetStyle, takeScreenshot, recordScreen, takeEmail
+    const dataFeedbackOpts = JSON.parse(document.getElementById(DEV_WIDGET_ID).getAttribute("data-feedback-opts"))
+    const customerId = document.getElementById(DEV_WIDGET_ID).getAttribute("data-customer-id");
+    if (!customerId || customerId === "null" || customerId === "undefined") {
+        return;
+    }
 
-    // window.addEventListener("scroll", () => {
-    //     // console.log(screen.height, screen.width, screen.pixelDepth, screen.availHeight, screen.availWidth, screen.colorDepth);
-    //     // console.log(document.scripts.length)
-    //     // console.log(document.body.offsetHeight, document.body.clientHeight, document.body.scrollTop)
-    //     // console.log(document.body.offsetWidth, document.body.clientWidth, document.body.scrollTop)
-    //     // const root = document.getElementById("root")
-    //     console.log(document.body.getBoundingClientRect())
-    // })
+    const {
+        position,
+        recordScreen,
+        takeScreenshot,
+        greetingMessage,
+        customPositions,
+        takeEmail,
+        headingText,
+        widgetButtonStyle
+    } = dataFeedbackOpts;
 
+    let formData = new FormData();
+    // formData.append('customerId', customerId); // imp
+    formData.append('widgetId', window.okfeedbackid); 
+    formData.append('widgetType', "developer"); 
+    let source = {
+        "url": window.location.href,
+        "browser": fnBrowserDetect(),
+        "userAgent": window.navigator.userAgent,
+    }
+    // formData.append('browser', fnBrowserDetect());
+    // formData.append('userAgent', window.navigator.userAgent);
+    // formData.append('clientEmail', "");
 
     const feedbackContainer = createFeedbackContainer(position) // main container #feedbackWidget
-    const inputContainer = createFeedbackInputContainer()
+    const inputContainer = createFeedbackInputContainer(position)
+    const emailInput = createEmailInput();
     const feedbackInput = createFeedbackInputBox();
 
     const submitButton = createSubmitButton();
     submitButton.addEventListener('click', (e) => {
-        const feedbackText = feedbackInput.value
-        const blobSrc = document.getElementById("thumbnail").getAttribute("src");
-        const blobType = "png"
-        const blob = blobSrc;
-        const clientEmail = "";
+        // submitButton.innerHTML += `<i class="fa fa-spinner fa-spin"></i>`
+        submitButton.setAttribute("disabled", true);
+        submitButton.style["opacity"] = "0.6";
 
-        console.log(feedbackText)
-        console.log(blob)
+        function normalizeSubmitButton() {
+            submitButton.innerHTML = `Submit`
+            submitButton.removeAttribute("disabled");
+            submitButton.style["opacity"] = "1.0";
+        }
+        if(emailInput.value) {
+            source['clientEmail'] = emailInput.value;
+        }
+        formData.append('source', JSON.stringify(source)); 
+        if (feedbackInput.value) {
+            formData.set('feedbackText', feedbackInput.value);
+        }
+        if ((feedbackInput.value === "") && formData.get("feedbackText")) {
+            formData.delete("feedbackText")
+        }
 
-        if (feedbackText || blob) {
-            // const tempCanvas = document.createElement("canvas")
-            // tempCanvas.width = "1248px";
-            // tempCanvas.height = "1200px";
-            // const tmpctx = tempCanvas.getContext("2d")
-            // const { left, top, right, bottom, x: newX, y: newY, width: bodyWidth, height: bodyHeight } = document.body.getBoundingClientRect()
-            // console.log(document.body.getBoundingClientRect())
-            // tmpctx.drawImage(image, newX, newY, drawingCanvas.width, drawingCanvas.height, 0, 0, drawingCanvas.width, drawingCanvas.height);
+        if (document.getElementById("thumbnail")) {
+            const screenshotSrc = document.getElementById("thumbnail").getAttribute("src");
+            if (screenshotSrc) {
+                formData.set('screenshot', screenshotSrc);
+                const screenshotType = "png"
+            }
+        }
+        // const screenshot = screenshotSrc;
+        if (document.getElementById("screenRecordVideo")) {
+            const recordingSrc = document.getElementById("screenRecordVideo").firstElementChild.getAttribute("src");
+            const recordingName = document.getElementById("screenRecordVideo").firstElementChild.getAttribute("download");
+            // const recordingBlob = document.getElementById("screenRecordVideo").firstElementChild.getAttribute("blob");
+            if (recordingSrc) {
+                formData.set('recording', recordingBlob, "recordingName.webm");
+                const recordingType = "video/webm"
+            }
+        }
 
-            // tmpctx.drawImage(document.getElementById("canvas-img"), 0, 0, 1248, 1200, 0, 0, 1248, 1200);
-            // let img = new Image();
-            // img.src = tempCanvas.toDataURL("image/png")
-            // img.id = "canvas-new-img"
+        if (formData.has("feedbackText") || formData.has("screenshot") || formData.has("recording")) {
+            const payload = {};
 
-            // document.getElementById("canvas-img").src = tempCanvas.toDataURL("image/png")
+            for (const [key, value] of formData.entries()) {
+                if(key === "source") {
+                    payload[key] = JSON.parse(value);
+                } else {
+                    payload[key] = value;
+                }
+                console.log(key, value)
+            }
+            inputContainer.style.opacity = "0.5"
+            fetch("/api/feedbacks", {
+                method: "POST",
+                mode: "cors",
+                // cache: "no-cache",
+                // credentials: "same-origin",
+                // headers: {
+                // "Content-Type": "application/json",
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+                // },
+                // redirect: "follow",
+                // referrerPolicy: "no-referrer",
+                body: JSON.stringify(payload)
+            }).then((res) => {
+                console.log(res)
+                emailInput.value = "";
+                feedbackInput.value = "";
+                inputContainer.style.opacity = "1"
+                // const thanksContainer = document.createElement("div");
+                // thanksContainer.style.width = "100%";
+                // thanksContainer.style.height = "90%";
+                // thanksContainer.style.display = "flex";
+                // thanksContainer.style.justifyContent = "center";
+                // thanksContainer.style.alignItems = "center";
 
-            // fetch("https://s1koft5j5f.execute-api.ap-south-1.amazonaws.com/dev/feedback", {
-            //     method: "POST",
-            //     mode: "cors",
-            //     // cache: "no-cache",
-            //     // credentials: "same-origin",
-            //     headers: {
-            //         "Content-Type": "application/json",
-            //         // 'Content-Type': 'application/x-www-form-urlencoded',
-            //     },
-            //     // redirect: "follow",
-            //     // referrerPolicy: "no-referrer",
-            //     body: JSON.stringify({
-            //         "browser": fnBrowserDetect(),
-            //         "userAgent": window.navigator.userAgent,
-            //         "url": window.location.href,
-            //         "clientEmail": "client@lpv.io",
-            //         "text": feedbackText,
-            //         "blobType": blobType,
-            //         "blob": blob
-            //     })
-            // }).then((res) => console.log(res))
-            //     .catch((e) => alert(e))
+                // const thanksText = document.createElement("p");
+                // thanksText.textContent = greetingMessage;
+                // thanksText.style.fontSize = "20px";
 
+                // // add illustration here
+                // thanksContainer.appendChild(thanksText);
+
+                // inputContainer.animate(
+                //     [
+                //         { opacity: 1, transform: "translateX(0)" },
+                //         { opacity: 0, transform: "translateX(-10%)" },
+                //     ],
+                //     { duration: 300, easing: "ease-in-out" }
+                // );
+                // thanksContainer.animate(
+                //     [
+                //         { opacity: 0, transform: "translateX(5%)" },
+                //         { opacity: 1, transform: "translateX(0)" },
+                //     ],
+                //     { duration: 300, easing: "ease-in-out" }
+                // );
+                // // inputContainer.parentNode?.replaceChild(
+                // //     thanksContainer,
+                // //     inputContainer
+                // // );
+                normalizeSubmitButton()
+                
+            }).catch((e) => {
+                alert(e)
+                normalizeSubmitButton()
+            })
+
+        } else {
+            normalizeSubmitButton()
+            feedbackInput.focus()
         }
 
     })
 
-
-    const captureButton = createCaptureButton()
+    const captureButton = createCaptureButton(takeScreenshot)
     captureButton.addEventListener("click", (e) => {
-
-        document.body.style["min-width"] = "fit-content"
-        document.body.style["min-height"] = "fit-content"
+        console.log("---------capture--------------")
 
         feedbackContainer.style["visibility"] = "hidden"
 
         const { left, top, right, bottom, x, y, width, height } = document.body.getBoundingClientRect()
-        console.log("---------capture--------------")
-        // console.log("clientWidth", document.documentElement.clientWidth, window.innerWidth, Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0))
-        // console.log("innerWidth", innerWidth, Math.abs(innerWidth), Math.floor(Math.abs(innerWidth)), Math.ceil(Math.abs(innerWidth)))
-        // console.log("clientHeight", document.documentElement.clientHeight, window.innerHeight, Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0))
-        // console.log("innerHeight", innerHeight, Math.abs(innerHeight), Math.floor(Math.abs(innerHeight)), Math.ceil(Math.abs(innerHeight)))
-
-        // console.log("left", left, Math.abs(left), Math.floor(Math.abs(left)), Math.ceil(Math.abs(left)))
-        // console.log("top", top, Math.abs(top), Math.floor(Math.abs(top)), Math.ceil(Math.abs(top)))
-        // console.log("right", right, Math.abs(right), Math.floor(Math.abs(right)), Math.ceil(Math.abs(right)))
-        // console.log("bottom", bottom, Math.abs(bottom), Math.floor(Math.abs(bottom)), Math.ceil(Math.abs(bottom)))
-        // console.log("x", x, Math.abs(x), Math.floor(Math.abs(x)), Math.ceil(Math.abs(x)))
-        // console.log("y", y, Math.abs(y), Math.floor(Math.abs(y)), Math.ceil(Math.abs(y)))
-        // console.log("width", width, Math.abs(width), Math.floor(Math.abs(width)), Math.ceil(Math.abs(width)))
-        // console.log("height", height, Math.abs(height), Math.floor(Math.abs(height)), Math.ceil(Math.abs(height)))
-
-        // document.body.appendChild(backdrop)
-
         const drawingCanvas = document.createElement("canvas")
         drawingCanvas.id = "drawingCanvas"
-        // drawingCanvas.setAttribute('height', window.innerHeight);
-        // drawingCanvas.setAttribute('width', window.innerWidth);
         drawingCanvas.style["position"] = "fixed";
         drawingCanvas.style["top"] = "0px";
         drawingCanvas.style["left"] = "0px";
-        // drawingCanvas.style["height"] = "1200";
-        // drawingCanvas.style["width"] = "700";
         drawingCanvas.style["background"] = "rgba(0, 0, 0, 0.1)";
-        drawingCanvas.style["z-index"] = "100000000";
-        // console.log("drawingCanvas", drawingCanvas.clientWidth, drawingCanvas.clientHeight)
-        // document.body.style["height"] = "100%";
-        // document.body.style["overflow"] = "hidden";
-
-        // https://www.geeksforgeeks.org/how-to-draw-with-mouse-in-html-5-canvas/
-        // const canvas = document.querySelector('#canvas');
+        drawingCanvas.style["z-index"] = "100000";
 
         // Context for the canvas for 2 dimensional operations
         const ctx = drawingCanvas.getContext('2d');
 
         // Resizes the canvas to the available size of the window.
         function resize() {
-            // console.log("resize")
             ctx.canvas.width = window.innerWidth;
             ctx.canvas.height = window.innerHeight;
         }
@@ -187,7 +266,7 @@ window.addEventListener('load', () => {
             // to a round shape.
             ctx.lineCap = 'round';
 
-            ctx.strokeStyle = 'green';
+            ctx.strokeStyle = 'red';
 
             // The cursor to start drawing
             // moves to this coordinate
@@ -219,31 +298,13 @@ window.addEventListener('load', () => {
 
         const okbutton = createCaptureOkButton();
         okbutton.addEventListener("click", (e) => {
+            console.log("---------ok--------------")
+
             okbutton.remove()
             cancelButton.remove()
 
-            console.log("---------ok button--------------")
-            console.log("drawingCanvas width", document.getElementById("drawingCanvas").width)
-            console.log("drawingCanvas height", document.getElementById("drawingCanvas").height)
-
-            console.log("clientWidth", document.documentElement.clientWidth) // 1258
-            console.log("innerWidth", window.innerWidth) // 1275
-            // console.log("innerWidth", innerWidth, Math.abs(innerWidth), Math.floor(Math.abs(innerWidth)), Math.ceil(Math.abs(innerWidth)))
-            console.log("clientHeight", document.documentElement.clientHeight) // 970
-            console.log("innerHeight", window.innerHeight) // 986
-            // console.log("innerHeight", innerHeight, Math.abs(innerHeight), Math.floor(Math.abs(innerHeight)), Math.ceil(Math.abs(innerHeight)))
-
             const { left, top, right, bottom, x, y, width, height } = document.body.getBoundingClientRect()
-            console.log("left", left, Math.abs(left), Math.floor(Math.abs(left)), Math.ceil(Math.abs(left)))
-            console.log("top", top, Math.abs(top), Math.floor(Math.abs(top)), Math.ceil(Math.abs(top)))
-            console.log("right", right, Math.abs(right), Math.floor(Math.abs(right)), Math.ceil(Math.abs(right)))
-            console.log("bottom", bottom, Math.abs(bottom), Math.floor(Math.abs(bottom)), Math.ceil(Math.abs(bottom)))
-            console.log("x", x, Math.abs(x), Math.floor(Math.abs(x)), Math.ceil(Math.abs(x)))
-            console.log("y", y, Math.abs(y), Math.floor(Math.abs(y)), Math.ceil(Math.abs(y)))
-            console.log("width", width, Math.abs(width), Math.floor(Math.abs(width)), Math.ceil(Math.abs(width)))
-            console.log("height", height, Math.abs(height), Math.floor(Math.abs(height)), Math.ceil(Math.abs(height)))
 
-            console.log("devicePixelRatio", window.devicePixelRatio)
             html2canvas(document.body, {
                 // allowTaint: false,
                 // backgroundColor: "#fff",
@@ -267,68 +328,7 @@ window.addEventListener('load', () => {
                 // windowHeight: Window.innerHeight
             }).then(function (canvas) {
                 console.log("---------html2canvas--------------")
-                console.log("canvas", canvas.width, canvas.height) // 1709 1349
 
-                // var ctx = canvas.getContext("2d");
-                // var imgData = ctx.getImageData((Math.abs(x)), (Math.abs(y)), (Math.abs(document.documentElement.clientWidth)), (Math.abs(document.documentElement.clientHeight)));
-                // console.log(imgData)
-
-                // const newCan = document.createElement("canvas")
-                // // console.log("init", newCan.width, newCan.height)
-
-                // newCan.width = Math.abs(document.documentElement.clientWidth)
-                // newCan.height = Math.abs(document.documentElement.clientHeight)
-                // const newCtx = newCan.getContext("2d");
-                // newCtx.putImageData(imgData, 0, 0);
-
-
-                // var context = canvas.getContext("2d");
-                // // // get the current ImageData for the canvas
-                // var data = context.getImageData(0, 0, canvas.width, canvas.height);
-                // // // store the current globalCompositeOperation
-                // var compositeOperation = context.globalCompositeOperation;
-                // // // set to draw behind current content
-                // context.globalCompositeOperation = "destination-over";
-                // // //set background color
-                // context.fillStyle = "#FFFFFF";
-                // // // draw background/rectangle on entire canvas
-                // context.fillRect(0, 0, canvas.width, canvas.height);
-
-                // console.log(canvas.attributes)
-                // document.document.body.appendChild(canvas);
-                function convertCanvasToImage() {
-                    let image = new Image();
-
-                    const tempCanvas = document.createElement("canvas")
-                    const tmpctx = tempCanvas.getContext("2d")
-                    const { left, top, right, bottom, x: newX, y: newY, width: bodyWidth, height: bodyHeight } = document.body.getBoundingClientRect()
-                    // console.log(document.body.getBoundingClientRect())
-                    // tmpctx.drawImage(image, newX, newY, drawingCanvas.width, drawingCanvas.height, 0, 0, drawingCanvas.width, drawingCanvas.height);
-                    tmpctx.drawImage(data, newX, newY,);
-                    let img = new Image();
-                    img.src = tempCanvas.toDataURL("image/png")
-
-                    // image.setAttribute("height", "300")
-                    // image.setAttribute("width", "300")
-                    return img;
-                }
-
-                // let pngImage = convertCanvasToImage();
-                // console.log(pngImage)
-                // cropImage({
-                //     canvas, 
-                //     imagePath: pnGImage.src, 
-                //     newX, 
-                //     newY, 
-                //     newWidth, 
-                //     newHeight
-                // })
-                // const newcanvas = document.getElementById("canvas")
-                // console.log(newcanvas.offsetHeight, newcanvas.clientHeight, newcanvas.scrollTop)
-
-                // let image = new Image();
-                // image.id = "canvas-img"
-                // image.style = "margin-left: 0px;border: 1px solid blue;"
                 let thumbnail = document.getElementById("thumbnail")
                 thumbnail.src = canvas.toDataURL("image/png");
                 thumbnailContainer.style["display"] = "block"
@@ -336,48 +336,16 @@ window.addEventListener('load', () => {
                 captureButton.style["display"] = "none";
                 recordButton.style["display"] = "none";
 
-                // image.width = Math.abs(window.innerWidth)
-                // image.height = Math.abs(window.innerHeight)
-                // image.src = canvas.toDataURL("image/png");
-                // document.body.appendChild(image);
-                // document.normalize()
-
-                // document.body.style["min-width"] = "unset"
-                // document.body.style["min-height"] = "unset"
-
-                // const img = document.getElementById("canvas-img")
-
-                // const tempCanvas = document.createElement("canvas")
-                // tempCanvas.width = width
-                // tempCanvas.height = height
-                // const tmpctx = tempCanvas.getContext("2d")
-                // tmpctx.drawImage(img, left, top, right, bottom, 0, 0, width, height)
-
-                // document.body.appendChild(tempCanvas)
-
-                // // var tmpctx = canvas.getContext("2d");
-                // var imgData = tmpctx.getImageData(left, top, width, height);
-                // tmpctx.putImageData(imgData, 0, 0);
-                // image.src = tempCanvas.toDataURL("image/png");
-
-                // ctx.drawImage(img, 10, 10);
-
             });
 
-            drawingCanvas.remove()
-            // document.body.removeAttribute("style")
-            // document.body.style["overflow"] = "hidden";
+            drawingCanvas.remove();
         })
 
         const cancelButton = createCaptureCancelButton()
         cancelButton.addEventListener("click", (e) => {
-            // const element = document.getElementById("div-02");
             drawingCanvas.remove()
             okCancelContainer.remove()
             feedbackContainer.style["visibility"] = "unset"
-            // okbutton.remove()
-            // cancelButton.remove()
-            // document.body.removeAttribute("style")
         })
         const okCancelContainer = createOkCancelContainer()
         okCancelContainer.appendChild(okbutton)
@@ -388,33 +356,18 @@ window.addEventListener('load', () => {
 
     })
 
-    const recordButton = createRecordScreenButton()
+    const recordButton = createRecordScreenButton(recordScreen)
     recordButton.addEventListener("click", async () => {
         // hide input container
-        inputContainer.style.display = "none";
-        feedbackButton.innerText = "Feedback"
+        feedbackContainer.style.display = "none";
 
         let stream = await startCapture();
+        if (stream === null) {
+            feedbackContainer.style.display = "block";
+            return;
+        }
         let mimeType = 'video/webm';
         let mediaRecorder = createRecorder(stream, mimeType);
-
-        // console.log("started")
-        // const icon = document.createElement("span")
-        // icon.setAttribute('class', "material-icons")
-        // icon.innerText = "close"
-        // icon.style = `
-        //         position:fixed;
-        //         top:50px;
-        //         right:50px;
-        //         cursor:pointer;
-        //         color: #222;
-        //     `;
-        // icon.addEventListener("click", (e) => {
-        //     mediaRecorder.stop();
-        //     icon.remove()
-        // })
-        // document.body.appendChild(icon)
-
 
         let ctlr = false;
         let shift = false;
@@ -467,28 +420,10 @@ window.addEventListener('load', () => {
         }, 10000)
     })
 
-    const feedbackButton = createFeedbackButton(position)
+    const feedbackButton = createFeedbackButton(position, customPositions)
     feedbackButton.addEventListener('click', (e) => {
-        if (inputContainer.style.display === "flex") {
-            inputContainer.style.display = "none";
-            feedbackButton.innerText = "Feedback"
-            // document.normalize();
-        }
-        else if (inputContainer.style.display === "none") {
-            inputContainer.style.display = "flex";
-            feedbackButton.innerText = "Hide me"
-        }
-
-        // const backdrop = document.createElement("div")
-        // backdrop.style.height = "100vh"
-        // backdrop.style.width = "100vw"
-        // backdrop.style.position = "fixed"
-        // backdrop.style.top = "0px"
-        // backdrop.style.left = "0px"
-        // backdrop.style.backgroundColor = "#222"
-        // backdrop.style.opacity = "0.2"
+        toggleWidget(position)
     })
-
 
     const buttonContainer = createButtonContainer()
     const thumbnailContainer = createThumbnailContainer()
@@ -499,6 +434,9 @@ window.addEventListener('load', () => {
     thumbnailCancel.addEventListener("click", (e) => {
         // remove captured image
         thumbnailContainer.style["display"] = "none"
+        thumbnail.removeAttribute("src")
+        formData.delete("screenshot")
+        // console.log(document.getElementById("thumbnail"))
         // feedbackContainer.style["visibility"] = "unset"
         captureButton.style["display"] = "block"
         recordButton.style["display"] = "block"
@@ -524,8 +462,9 @@ window.addEventListener('load', () => {
         `;
 
         const icon = document.createElement("span")
-        icon.setAttribute('class', "material-icons")
-        icon.innerText = "close"
+        // icon.setAttribute('class', "material-icons")
+        icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg>`;
+        // icon.innerText = "close"
         icon.style = `
             position:absolute;
             top:50px;
@@ -545,9 +484,9 @@ window.addEventListener('load', () => {
     const videoContainer = createVideoContainer()
     const recordCancel = createRecordCancel()
     recordCancel.addEventListener("click", (e) => {
-        // remove captured image
         document.getElementById("screenRecordVideo").remove()
         videoContainer.style["display"] = "none"
+        formData.delete("recording")
 
         // feedbackContainer.style["visibility"] = "unset"
         captureButton.style["display"] = "block"
@@ -560,14 +499,22 @@ window.addEventListener('load', () => {
     buttonContainer.appendChild(captureButton)
     buttonContainer.appendChild(recordButton)
     buttonContainer.appendChild(submitButton)
-
+    
+    inputContainer.appendChild(Object.assign(document.createElement('h1'), {
+        innerText: headingText,
+        style: `font-weight: 600;
+        font-size: x-large;`
+    }))
+    if(takeEmail) {
+        inputContainer.appendChild(emailInput)
+    }
     inputContainer.appendChild(feedbackInput)
     inputContainer.appendChild(buttonContainer)
     inputContainer.appendChild(Object.assign(
         document.createElement('div'),
         {
             id: 'powered-by',
-            innerHTML: `powered by <a href="#" >feedback</a> </br>(Press Ctl + Shift + x to stop screen recording)`,
+            innerHTML: `powered by <a href="https://okfeedback.io" style="color: blue;font-weight: 600;" target="_blank" >Okfeedback.io</a> </br>(Press Ctl + Shift + x to stop screen recording)`,
             style: `font-size: 10px;`
         }
     ))
@@ -580,75 +527,113 @@ window.addEventListener('load', () => {
 
     document.body.appendChild(dFrag);
 
-    // document.addEventListener('click', function (event) {
-    //     var elem = document.getElementById('feedbackWidget');
-    //     const outsideClick = !elem.contains(event.target);
-    //     if (outsideClick) {
-    //         inputContainer.style.display = "none";
-    //     }
-    // });
+}
 
-    // document.document.body.appendChild(
-    //     Object.assign(
-    //         document.createElement('div'),
-    //         {
-    //             id: 'box',
-    //             style: "background-color: #333"
-    //         }
-    //     )
-    // ).appendChild(
-    //     Object.assign(
-    //         document.createElement('button'),
-    //         {
-    //             innerHTML: 'button',
-    //             id: 'button-1'
-    //         }
-    //     )
-    // )
 
-    // getBoundingClientRect()
-    // .scrollIntoView();
-    // let x = element.scrollLeft;
-    // let y = element.scrollTop;
+function toggleWidget(position) {
+    const inputContainer = document.getElementById("inputBox")
+    // if (position === "left") {
+    //     inputBox.animate([
+    //         { opacity: 0, transform: 'translateX(-50%)' },
+    //         { opacity: 1, transform: 'translateX(0)' }
+    //     ], { duration: 300, easing: 'ease-in-out' })
+    // }
+    // if (position === "bottom") {
+    //     inputBox.animate([
+    //         { opacity: 0, transform: 'translateY(10%)' },
+    //         { opacity: 1, transform: 'translateY(0)' }
+    //     ], { duration: 300, easing: 'ease-in-out' })
+    // }
+    // if (position === "right") {
+    //     inputBox.animate([
+    //         { opacity: 0, transform: 'translateX(10%)' },
+    //         { opacity: 1, transform: 'translateX(0)' }
+    //     ], { duration: 300, easing: 'ease-in-out' })
+    // }
+    const feedbackButton = document.getElementById("feedbackButton")
+    if (inputContainer.style.display === "flex") {
+        inputContainer.style.display = "none";
+        // feedbackButton.innerText = "Feedback"
+        feedbackButton.style.display = "block"
+        // document.normalize();
+    }
+    else if (inputContainer.style.display === "none") {
+        inputContainer.style.display = "flex";
+        // feedbackButton.innerText = "Hide me"
+        feedbackButton.style.display = "none"
+    }
+}
 
-})
+function createCloseWidgetButton() {
+    const icon = document.createElement("span")
+    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"  viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/></svg>`;
 
+    icon.setAttribute("id", "closeWidgetButton")
+    // icon.setAttribute('class', "material-icons")
+    // icon.innerText = "cancel"
+    icon.style = `
+        position:absolute;
+        top:-8px;
+        right:8px;
+        cursor:pointer;
+    `;
+    return icon
+}
 
 function createFeedbackContainer(position) {
     const box = document.createElement("div");
     box.id = "feedbackWidget";
-    // get option here
+    // get option here    
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+    const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+    let top = "42%";
+    if (vw < 480) {
+        top = "70%"
+    } else if (vw < 1273) {
+        top = "62%"
+    }
     const bottomStyles = `
         position: fixed;
-        bottom: 50px;
+        bottom: 4px;
         left: 50%;
         box-shadow: rgba(0,0,0,0.35) 0 6px 100px 0;
         padding: 12px;
         background: #fff;
-        border-radius: 16px;
+        z-index: 10000;
     `;
     const rightStyles = `
         position: fixed;
-        right: 46px;
-        top: 42%;
+        right: 4px;
+        top: ${top};
         box-shadow: rgba(0,0,0,0.35) 0 6px 100px 0;
         padding: 12px;
         background: rgb(255, 255, 255);
-        border-radius: 16px;
+        z-index: 10000;
     `;
     const leftStyles = `
         position: fixed;
-        left: 50px;
+        left: 4px;
         top: 42%;
         box-shadow: rgba(0,0,0,0.35) 0 6px 100px 0;
         padding: 12px;
         background: rgb(255, 255, 255);
-        border-radius: 16px;
+        z-index: 10000;
     `;
-    if (position === "left") box.style = leftStyles
-    if (position === "bottom") box.style = bottomStyles
-    if (position === "right") box.style = rightStyles
+    if (position === "left") {
+        box.style = leftStyles
+    }
+    if (position === "bottom") {
+        box.style = bottomStyles
+    }
+    if (position === "right") {
+        box.style = rightStyles
+    }
 
+    const closeButton = createCloseWidgetButton()
+    closeButton.addEventListener("click", () => {
+        toggleWidget(position)
+    })
+    box.appendChild(closeButton)
     return box
 }
 
@@ -664,7 +649,7 @@ function createButtonContainer() {
     return box
 }
 
-function createFeedbackInputContainer() {
+function createFeedbackInputContainer(position) {
     const inputBox = document.createElement("div");
     inputBox.id = "inputBox"
     inputBox.style = `
@@ -678,10 +663,30 @@ function createFeedbackInputContainer() {
 function createFeedbackInputBox() {
     const input = document.createElement("textarea");
     input.id = "input"
+    input.setAttribute("placeholder", "feedback...")
     // input.type = "text"
     input.style = `
         width: 100%;
         height: 100px;
+        padding: 8px;
+        box-sizing: border-box;
+        border: 2px solid #ccc;
+        border-radius: 4px;
+        background-color: #f8f8f8;
+        font-size: 16px;
+        resize: none;
+    `
+    return input;
+}
+
+function createEmailInput() {
+    const input = document.createElement("input");
+    input.id = "email"
+    input.type = "email"
+    input.setAttribute("placeholder", "email...")
+    input.style = `
+        width: 100%;
+        height: 48px;
         padding: 8px;
         box-sizing: border-box;
         border: 2px solid #ccc;
@@ -698,94 +703,102 @@ function createSubmitButton() {
     submitButton.id = "submitButton"
     submitButton.innerText = 'Submit';
     submitButton.style = `
+        background-color: #4CAF50;
         border: none;
         color: white;
-        padding: 8px 12px;
-        font-size: 16px;
-        cursor: pointer;
-        height: 50px;
-        background-color: #04AA6D;
+        padding: 6px 16px;
+        text-align: center;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;   
+        border-radius: 6px; 
+        max-height: 48px;
     `;
     return submitButton
 }
-function createCaptureButton() {
+function createCaptureButton(takeScreenshot) {
     const captureButton = document.createElement("button");
     // <span class="material-icons">
     //     add_a_photo
     // </span>
     const icon = document.createElement("span")
-    icon.setAttribute('class', "material-icons")
-    icon.innerText = "add_a_photo"
+    // icon.setAttribute('class', "material-icons")
+    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+    <path d="M10.5 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+    <path d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2zm.5 2a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm9 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"/>
+  </svg>`
+    // icon.innerText = "add_a_photo"
     captureButton.appendChild(icon);
     captureButton.id = "captureButton"
     captureButton.style = `
         cursor: pointer;
         padding: 8px 16px;
         border: 1px dashed #e3e3e3;
+        display: ${(takeScreenshot) ? "block" : "none"};
     `;
     return captureButton
 }
-function createRecordScreenButton() {
+function createRecordScreenButton(recordScreen) {
 
     const screenRecordButton = document.createElement("button");
     // <span class="material-icons">
     //     add_a_photo
     // </span>
     const icon = document.createElement("span")
-    icon.setAttribute('class', "material-icons")
-    icon.innerText = "videocam"
+    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+    <path fill-rule="evenodd" d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2V5z"/>
+  </svg>`;
+    // icon.setAttribute('class', "material-icons")
+    // icon.innerText = "videocam"
     screenRecordButton.appendChild(icon);
     screenRecordButton.id = "recordScreenButton"
     screenRecordButton.style = `
         cursor: pointer;
         padding: 8px 16px;
         border: 1px dashed #e3e3e3;
+        display: ${(recordScreen) ? "block" : "none"};
     `;
     return screenRecordButton
 }
-function createFeedbackButton(position) {
+function createFeedbackButton(position, customPositions) {
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+    const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+    let top = "42%";
+    if (vw < 480) {
+        top = "70%"
+    } else if (vw < 1273) {
+        top = "62%"
+    }
     const button = document.createElement('button');
     button.innerText = 'Feedback';
     button.id = 'feedbackButton';
-    const rightStyles = `
+    const styles = `
         height: 45px;
         border: 1px solid rgb(221, 221, 221);
         background: rgb(51, 51, 51);
-        width: 120px;
+        width: 128px;
         font-weight: 600;
         color: white;
-        transform: rotate(-90deg);
         text-align: center;
         position: fixed;
-        right: -45px;
-        top: 50%;
+        z-index: 10000;
     `;
-    const bottomStyles = `
-        height: 45px;
-        border: 1px solid rgb(221, 221, 221);
-        background: rgb(51, 51, 51);
-        width: 120px;
-        font-weight: 600;
-        color: white;
-        text-align: center;
-        position: fixed;
+    const rightStyles = styles + `
+        transform: rotate(-90deg);
+        right: -45px;
+        top: ${top};
+    `;
+    const bottomStyles = styles + `
         right: unset;
         top: unset;
         left: 50%;
         bottom: 0px;
     `;
-    const leftStyles = `
-        height: 45px;
-        border: 1px solid rgb(221, 221, 221);
-        background: rgb(51, 51, 51);
-        width: 120px;
-        font-weight: 600;
-        color: white;
+    const leftStyles = styles + `
         transform: rotate(90deg);
-        text-align: center;
-        position: fixed;
         left: -45px;
-        top: 50%;
+        top: 42%;
     `;
     if (position === "left") button.style = leftStyles
     if (position === "bottom") button.style = bottomStyles
@@ -799,7 +812,7 @@ function createOkCancelContainer() {
         display:flex;
         flex-direction:row;
         position: fixed;
-        z-index:10000000000;
+        z-index:1000000;
         bottom: 10px;
         left: 50%;
     `
@@ -809,8 +822,11 @@ function createCaptureOkButton() {
     const okbutton = document.createElement('button');
 
     const icon = document.createElement("span")
-    icon.setAttribute('class', "material-icons")
-    icon.innerText = "check"
+    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16">
+    <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/>
+  </svg>`
+    // icon.setAttribute('class', "material-icons")
+    // icon.innerText = "check"
     okbutton.appendChild(icon);
 
     // okbutton.innerText = 'OK';
@@ -826,8 +842,11 @@ function createCaptureCancelButton() {
     const cancelButton = document.createElement('button');
 
     const icon = document.createElement("span")
-    icon.setAttribute('class', "material-icons")
-    icon.innerText = "close"
+    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+    <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+  </svg>`
+    // icon.setAttribute('class', "material-icons")
+    // icon.innerText = "close"
     cancelButton.appendChild(icon);
 
     // cancelButton.innerHTML = 'Cancel';
@@ -870,11 +889,13 @@ function createThumbnail() {
     return thumbnail
 }
 
+
 function createThumbnailCancel() {
     const icon = document.createElement("span")
+    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"  viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/></svg>`;
     // <i class="material-icons">add_circle</i>
-    icon.setAttribute('class', "material-icons")
-    icon.innerText = "cancel"
+    // icon.setAttribute('class', "material-icons")
+    // icon.innerText = "cancel"
     icon.style = `
         position:absolute;
         top:0;
@@ -897,9 +918,10 @@ function createVideoContainer() {
 }
 function createRecordCancel() {
     const icon = document.createElement("span")
+    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"  viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/></svg>`;
     // <i class="material-icons">add_circle</i>
-    icon.setAttribute('class', "material-icons")
-    icon.innerText = "cancel"
+    // icon.setAttribute('class', "material-icons")
+    // icon.innerText = "cancel"
     icon.style = `
         position:absolute;
         top:-8px;
@@ -912,15 +934,17 @@ function createRecordCancel() {
 // ----- screen sharing -------
 async function startCapture() {
 
-    // Create a new CaptureController instance
-    const controller = new CaptureController();
+    try {
 
-    // Prompt the user to share a tab, window, or screen.
-    const stream = await navigator.mediaDevices
-        .getDisplayMedia({
+        // Create a new CaptureController instance
+        const controller = new CaptureController();
+
+        // Prompt the user to share a tab, window, or screen.
+        const stream = await navigator.mediaDevices.getDisplayMedia({
             controller,
             preferCurrentTab: true,
             audio: true,
+            // video: true
             // audio: {
             //     echoCancellation: true,
             //     noiseSuppression: true,
@@ -931,60 +955,65 @@ async function startCapture() {
                 mediaSource: "screen",
                 // displaySurface: "window"
             },
-            selfBrowserSurface: "include"
+            // selfBrowserSurface: "include"
             // selfBrowserSurface: "exclude",
             // surfaceSwitching: "include",
             // systemAudio: "exclude",
         })
-    // .catch((err) => {
-    //     console.error(err);
-    //     return null;
-    // }).then((stream) => {
-    //     console.log(stream)
-    //     // Query the displaySurface value of the captured video track
-    //     const [track] = stream.getVideoTracks();
-    //     const displaySurface = track.getSettings().displaySurface;
+        // .catch((err) => {
+        //     console.error(err);
+        //     return null;
+        // }).then((stream) => {
+        //     console.log(stream)
+        //     // Query the displaySurface value of the captured video track
+        //     const [track] = stream.getVideoTracks();
+        //     const displaySurface = track.getSettings().displaySurface;
 
 
-    // Query the displaySurface value of the captured video track
+        // Query the displaySurface value of the captured video track
 
-    const [track] = stream.getVideoTracks();
-    // {
-    //     contentHint: "",
-    //     enabled: true,
-    //     id: "6d0fad02-b3a0-49e8-a9d9-cd7b0a2e1039",
-    //     kind: "video",
-    //     label: "current-web-contents-media-stream://518D5116A4FF4363A7D2BBDE75527713",
-    //     muted: false,
-    //     oncapturehandlechange: null,
-    //     onended: null,
-    //     onmute: null,
-    //     onunmute: null,
-    //     readyState: "live"
-    // }
-    const displaySurface = track.getSettings().displaySurface;
-    // {
-    //     "aspectRatio": 1.7777777777777777,
-    //     "cursor": "motion",
-    //     "deviceId": "web-contents-media-stream://591:4",
-    //     "displaySurface": "browser",
-    //     "frameRate": 30,
-    //     "height": 1080,
-    //     "logicalSurface": true,
-    //     "resizeMode": "crop-and-scale",
-    //     "width": 1920
-    // }
+        const [track] = stream.getVideoTracks();
+        // {
+        //     contentHint: "",
+        //     enabled: true,
+        //     id: "6d0fad02-b3a0-49e8-a9d9-cd7b0a2e1039",
+        //     kind: "video",
+        //     label: "current-web-contents-media-stream://518D5116A4FF4363A7D2BBDE75527713",
+        //     muted: false,
+        //     oncapturehandlechange: null,
+        //     onended: null,
+        //     onmute: null,
+        //     onunmute: null,
+        //     readyState: "live"
+        // }
+        const displaySurface = track.getSettings().displaySurface;
+        // {
+        //     "aspectRatio": 1.7777777777777777,
+        //     "cursor": "motion",
+        //     "deviceId": "web-contents-media-stream://591:4",
+        //     "displaySurface": "browser",
+        //     "frameRate": 30,
+        //     "height": 1080,
+        //     "logicalSurface": true,
+        //     "resizeMode": "crop-and-scale",
+        //     "width": 1920
+        // }
 
-    if (displaySurface == "browser") {
-        // Focus the captured tab.
-        controller.setFocusBehavior("focus-captured-surface");
-    } else if (displaySurface == "window") {
-        // Do not move focus to the captured window.
-        // Keep the capturing page focused.
-        controller.setFocusBehavior("no-focus-change");
+        if (displaySurface == "browser") {
+            // Focus the captured tab.
+            controller.setFocusBehavior("focus-captured-surface");
+        } else if (displaySurface == "window") {
+            // Do not move focus to the captured window.
+            // Keep the capturing page focused.
+            controller.setFocusBehavior("no-focus-change");
+        }
+
+        return stream
+
+    } catch (error) {
+        alert(error)
+        return null
     }
-
-    return stream
 
 }
 
@@ -1013,6 +1042,7 @@ function saveFile(recordedChunks) {
     const blob = new Blob(recordedChunks, {
         type: 'video/webm'
     });
+    recordingBlob = blob;
     let filename = makeid(15),
         downloadLink = document.createElement('a');
 
@@ -1025,15 +1055,16 @@ function saveFile(recordedChunks) {
     video.width = "120"
     video.controls = "true"
     video.innerHTML = `
-        <source src="${downloadLink}" type="video/webm">
+        <source src="${downloadLink.href}" type="video/webm" download="${downloadLink.download}" blob="${blob}">
         Your browser does not support the video tag.
     `;
+    document.getElementById("feedbackWidget").style["display"] = "block"
     const videoContainer = document.getElementById('videoContainer')
     videoContainer.style["display"] = "block"
     document.getElementById("captureButton").style["display"] = "none";
     document.getElementById("recordScreenButton").style["display"] = "none";
     document.getElementById("inputBox").style["display"] = "flex";
-    document.getElementById("feedbackButton").innerText = "Hide me"
+    // document.getElementById("feedbackButton").innerText = "Hide me"
     videoContainer.appendChild(video)
 
     // return downloadLink
@@ -1103,3 +1134,6 @@ function fnBrowserDetect() {
     }
     return browserName
 }
+
+
+loadWidget()
