@@ -42,7 +42,9 @@ let recordingBlob = null;
  * 
  */
 
+const WIDGET_TYPE = "bug"
 const DEV_WIDGET_ID = "okfeedback-developer-feedback-widget";
+
 const loadWidget = () => {
     // document.head.innerHTML += `
     // <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
@@ -71,7 +73,7 @@ const loadWidget = () => {
     let formData = new FormData();
     // formData.append('customerId', customerId); // imp
     formData.append('widgetId', window.okfeedbackid); 
-    formData.append('widgetType', "developer"); 
+    formData.append('widgetType', WIDGET_TYPE); 
     let source = {
         "url": window.location.href,
         "browser": fnBrowserDetect(),
@@ -590,7 +592,7 @@ function createFeedbackContainer(position) {
     if (vw < 480) {
         top = "70%"
     } else if (vw < 1273) {
-        top = "62%"
+        top = "45%"
     }
     const bottomStyles = `
         position: fixed;

@@ -65,7 +65,7 @@ var FeedbackWidget = /** @class */ (function () {
                 widgetPosition: "right", // "right" | "bottom"
             };
             var script = document.createElement("script");
-            script.src = "/feedback-build/emoji/emoji.bundle.js";
+            script.src = "/dist/v1/emoji/emoji.bundle.js";
             script.async = true;
             script.dataset.customerId = "8573243847092";
             script.id = FeedbackWidget.EMOJI_WIDGET_ID;
@@ -79,7 +79,7 @@ var FeedbackWidget = /** @class */ (function () {
                 questions: details.questions,
             };
             var script = document.createElement("script");
-            script.src = "/feedback-build/survey/survey.bundle.js";
+            script.src = "/dist/v1/survey/survey.bundle.js";
             script.async = true;
             script.dataset.customerId = "8573243847092";
             script.id = FeedbackWidget.SURVEY_FORM_ID;
@@ -222,7 +222,7 @@ var FeedbackWidget = /** @class */ (function () {
             canRecordScreen: true,
         };
         var script = document.createElement("script");
-        script.src = "/feedback-build/feedback/feedback.bundle.js";
+        script.src = "/dist/v1/feedback/feedback.bundle.js";
         script.async = true;
         script.dataset.customerId = "8573243847092";
         script.id = FeedbackWidget.DEV_WIDGET_ID;

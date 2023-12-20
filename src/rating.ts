@@ -1,3 +1,4 @@
+const WIDGET_TYPE = "rating";
 /**
  *
  * @todos
@@ -9,7 +10,7 @@
  */
 let emojiFeedback: any = {
   widgetId: window.okfeedbackid,
-  widgetType: "emoji",
+  widgetType: WIDGET_TYPE,
   response: {},
   source: {
     url: window.location.href,
@@ -34,7 +35,7 @@ class EmojiFeedbackWidget {
     greetingMessage,
     takeEmail,
   }: any) {
-    console.log("EmojiFeedbackWidget initiated");
+    console.log("Rating widget initiated");
     this.widgetPosition = widgetPosition;
     this.headingText = headingText;
     this.greetingMessage = greetingMessage;

@@ -34,6 +34,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var WIDGET_TYPE = "rating";
 /**
  *
  * @todos
@@ -45,7 +46,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
  */
 var emojiFeedback = {
     widgetId: window.okfeedbackid,
-    widgetType: "emoji",
+    widgetType: WIDGET_TYPE,
     response: {},
     source: {
         url: window.location.href,
@@ -59,7 +60,7 @@ var EmojiFeedbackWidget = /** @class */ (function () {
         var widgetPosition = _a.widgetPosition, 
         // widgetButtonStyle,
         headingText = _a.headingText, greetingMessage = _a.greetingMessage, takeEmail = _a.takeEmail;
-        console.log("EmojiFeedbackWidget initiated");
+        console.log("Rating widget initiated");
         this.widgetPosition = widgetPosition;
         this.headingText = headingText;
         this.greetingMessage = greetingMessage;
