@@ -60,7 +60,8 @@ var EmojiFeedbackWidget = /** @class */ (function () {
         var widgetPosition = _a.widgetPosition, 
         // widgetButtonStyle,
         headingText = _a.headingText, greetingMessage = _a.greetingMessage, takeEmail = _a.takeEmail;
-        console.log("Rating widget initiated");
+        if (window.location.host === "localhost:3000")
+            console.log("Rating widget initiated");
         this.widgetPosition = widgetPosition;
         this.headingText = headingText;
         this.greetingMessage = greetingMessage;
@@ -168,7 +169,8 @@ var EmojiFeedbackWidget = /** @class */ (function () {
     EmojiFeedbackWidget.prototype.handleEmojiSelection = function (event) {
         var selectedEmoji = event.target.textContent;
         var selectedLabel = event.target.getAttribute("aria-label");
-        console.log(selectedEmoji, selectedLabel);
+        if (window.location.host === "localhost:3000")
+            console.log(selectedEmoji, selectedLabel);
         emojiFeedback.response["rating"] = Number(selectedLabel);
         // const feedbackLabel = document.createElement("label");
         // feedbackLabel.textContent = "Feedback:";
@@ -237,8 +239,8 @@ var EmojiFeedbackWidget = /** @class */ (function () {
     };
     EmojiFeedbackWidget.prototype.handleFeedbackFormSubmit = function () {
         // Perform any necessary processing with the selected emoji and label
-        // console.log("Selected Emoji:", selectedEmoji);
-        // console.log("Selected Label:", selectedLabel);
+        // if(window.location.host === "localhost:3000") console.log("Selected Emoji:", selectedEmoji);
+        // if(window.location.host === "localhost:3000") console.log("Selected Label:", selectedLabel);
         // slideOutToLeft(heading)
         // slideOutToLeft(emojiContainer)
         // slideOutToLeft(form)
@@ -269,7 +271,8 @@ var EmojiFeedbackWidget = /** @class */ (function () {
                     case 1:
                         response = _a.sent();
                         if (response.ok) {
-                            console.log("Feedback submitted successfully");
+                            if (window.location.host === "localhost:3000")
+                                console.log("Feedback submitted successfully");
                             this.createThanksText();
                         }
                         else {

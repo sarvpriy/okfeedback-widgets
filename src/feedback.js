@@ -4,8 +4,9 @@
 
 import html2canvas from "html2canvas";
 
-if (process.env.NODE_ENV !== 'production') {
-    console.log('Looks like we are in development mode!');
+if(window.location.host === "localhost:3000") console.log(process.env.NODE_ENV)
+if (window.location.host === "localhost:3000") {
+   console.log('Looks like we are in development mode!');
 }
 
 // type Feedback = {
@@ -44,13 +45,17 @@ let recordingBlob = null;
 
 const WIDGET_TYPE = "bug"
 const DEV_WIDGET_ID = "okfeedback-developer-feedback-widget";
+let FEEDBACK_SUBMIT_URL = "http://localhost:3000"
+if (window.location.host !== "localhost:3000") {
+    FEEDBACK_SUBMIT_URL = "https://www.okfeedback.io"
+}
 
 const loadWidget = () => {
     // document.head.innerHTML += `
     // <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
     // <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     // `;
-    // console.log("---------window loaded--------------")
+    // if(window.location.host === "localhost:3000") console.log("---------window loaded--------------")
 
     // title, positions, custom positions, widgetStyle, takeScreenshot, recordScreen, takeEmail
     const dataFeedbackOpts = JSON.parse(document.getElementById(DEV_WIDGET_ID).getAttribute("data-feedback-opts"))
@@ -137,10 +142,10 @@ const loadWidget = () => {
                 } else {
                     payload[key] = value;
                 }
-                console.log(key, value)
+                if(window.location.host === "localhost:3000") console.log(key, value)
             }
             inputContainer.style.opacity = "0.5"
-            fetch("/api/feedbacks", {
+            fetch(`${FEEDBACK_SUBMIT_URL}/api/feedbacks`, {
                 method: "POST",
                 mode: "cors",
                 // cache: "no-cache",
@@ -153,7 +158,7 @@ const loadWidget = () => {
                 // referrerPolicy: "no-referrer",
                 body: JSON.stringify(payload)
             }).then((res) => {
-                console.log(res)
+                if(window.location.host === "localhost:3000") console.log(res)
                 emailInput.value = "";
                 feedbackInput.value = "";
                 inputContainer.style.opacity = "1"
@@ -205,7 +210,7 @@ const loadWidget = () => {
 
     const captureButton = createCaptureButton(takeScreenshot)
     captureButton.addEventListener("click", (e) => {
-        console.log("---------capture--------------")
+        if(window.location.host === "localhost:3000") console.log("---------capture--------------")
 
         feedbackContainer.style["visibility"] = "hidden"
 
@@ -238,7 +243,7 @@ const loadWidget = () => {
         // an event e is triggered to the coordinates where 
         // the said event is triggered.
         function getPosition(event) {
-            // console.log("getPosition", event)
+            // if(window.location.host === "localhost:3000") console.log("getPosition", event)
 
             coord.x = event.clientX - drawingCanvas.offsetLeft;
             coord.y = event.clientY - drawingCanvas.offsetTop;
@@ -247,18 +252,18 @@ const loadWidget = () => {
         // The following functions toggle the flag to start
         // and stop drawing
         function startPainting(event) {
-            // console.log("startPainting", event)
+            // if(window.location.host === "localhost:3000") console.log("startPainting", event)
             paint = true;
             getPosition(event);
         }
 
         function stopPainting() {
-            // console.log("stopPainting")
+            // if(window.location.host === "localhost:3000") console.log("stopPainting")
             paint = false;
         }
 
         function sketch(event) {
-            // console.log("sketch", event)
+            // if(window.location.host === "localhost:3000") console.log("sketch", event)
             if (!paint) return;
             ctx.beginPath();
 
@@ -300,7 +305,7 @@ const loadWidget = () => {
 
         const okbutton = createCaptureOkButton();
         okbutton.addEventListener("click", (e) => {
-            console.log("---------ok--------------")
+            if(window.location.host === "localhost:3000") console.log("---------ok--------------")
 
             okbutton.remove()
             cancelButton.remove()
@@ -315,7 +320,7 @@ const loadWidget = () => {
                 // imageTimeout: 15000,
                 // // ignoreElements: (element) => false
                 // logging: true,
-                // onclone: (e) => { console.log("----------onclone----------", e) },
+                // onclone: (e) => { if(window.location.host === "localhost:3000") console.log("----------onclone----------", e) },
                 // proxy: null,
                 // removeContainer: true,
                 scale: 1,
@@ -329,7 +334,7 @@ const loadWidget = () => {
                 // windowWidth: Window.innerWidth,
                 // windowHeight: Window.innerHeight
             }).then(function (canvas) {
-                console.log("---------html2canvas--------------")
+                if(window.location.host === "localhost:3000") console.log("---------html2canvas--------------")
 
                 let thumbnail = document.getElementById("thumbnail")
                 thumbnail.src = canvas.toDataURL("image/png");
@@ -379,7 +384,7 @@ const loadWidget = () => {
             if (code === "KeyX" && ctlr && shift) {
                 mediaRecorder.stop();
                 // Alert the key name and key code on keydown
-                // console.log(`Key pressed ${name} \r\n Key code value: ${code}`);
+                // if(window.location.host === "localhost:3000") console.log(`Key pressed ${name} \r\n Key code value: ${code}`);
             }
         }, false);
 
@@ -395,9 +400,9 @@ const loadWidget = () => {
                 shift = true;
             }
             // if (event.ctrlKey) {
-            //     console.log(`Combination of ctrlKey + ${name} \n Key code Value: ${code}`);
+            //     if(window.location.host === "localhost:3000") console.log(`Combination of ctrlKey + ${name} \n Key code Value: ${code}`);
             // } else {
-            //     console.log(`cdnl Key pressed ${name} \n Key code Value: ${code}`);
+            //     if(window.location.host === "localhost:3000") console.log(`cdnl Key pressed ${name} \n Key code Value: ${code}`);
             // }
         }, false);
         // Add event listener on keyup
@@ -405,14 +410,14 @@ const loadWidget = () => {
             var name = event.key;
             if (name === 'Control') {
                 ctlr = false;
-                // console.log('Control key released');
+                // if(window.location.host === "localhost:3000") console.log('Control key released');
             }
             if (name === 'Shift') {
                 shift = false;
-                // console.log('Shift key released');
+                // if(window.location.host === "localhost:3000") console.log('Shift key released');
             }
             // if (name === 'Alt') {
-            //     console.log('Alt key released');
+            //     if(window.location.host === "localhost:3000") console.log('Alt key released');
             // }
         }, false);
 
@@ -438,7 +443,7 @@ const loadWidget = () => {
         thumbnailContainer.style["display"] = "none"
         thumbnail.removeAttribute("src")
         formData.delete("screenshot")
-        // console.log(document.getElementById("thumbnail"))
+        // if(window.location.host === "localhost:3000") console.log(document.getElementById("thumbnail"))
         // feedbackContainer.style["visibility"] = "unset"
         captureButton.style["display"] = "block"
         recordButton.style["display"] = "block"
@@ -530,7 +535,6 @@ const loadWidget = () => {
     document.body.appendChild(dFrag);
 
 }
-
 
 function toggleWidget(position) {
     const inputContainer = document.getElementById("inputBox")
@@ -639,7 +643,6 @@ function createFeedbackContainer(position) {
     return box
 }
 
-
 function createButtonContainer() {
     const box = document.createElement("div");
     box.id = "buttonContainer";
@@ -719,6 +722,7 @@ function createSubmitButton() {
     `;
     return submitButton
 }
+
 function createCaptureButton(takeScreenshot) {
     const captureButton = document.createElement("button");
     // <span class="material-icons">
@@ -741,6 +745,7 @@ function createCaptureButton(takeScreenshot) {
     `;
     return captureButton
 }
+
 function createRecordScreenButton(recordScreen) {
 
     const screenRecordButton = document.createElement("button");
@@ -763,6 +768,7 @@ function createRecordScreenButton(recordScreen) {
     `;
     return screenRecordButton
 }
+
 function createFeedbackButton(position, customPositions) {
     const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
     const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
@@ -770,7 +776,7 @@ function createFeedbackButton(position, customPositions) {
     if (vw < 480) {
         top = "70%"
     } else if (vw < 1273) {
-        top = "62%"
+        top = "45%"
     }
     const button = document.createElement('button');
     button.innerText = 'Feedback';
@@ -807,6 +813,7 @@ function createFeedbackButton(position, customPositions) {
     if (position === "right") button.style = rightStyles
     return button
 }
+
 function createOkCancelContainer() {
     const box = document.createElement('div');
     box.id = "okCancelContainer";
@@ -820,6 +827,7 @@ function createOkCancelContainer() {
     `
     return box
 }
+
 function createCaptureOkButton() {
     const okbutton = document.createElement('button');
 
@@ -840,6 +848,7 @@ function createCaptureOkButton() {
     `
     return okbutton
 }
+
 function createCaptureCancelButton() {
     const cancelButton = document.createElement('button');
 
@@ -860,6 +869,7 @@ function createCaptureCancelButton() {
     `
     return cancelButton
 }
+
 function createThumbnailContainer() {
     const box = document.createElement('div');
     box.id = "thumbnailContainer";
@@ -870,6 +880,7 @@ function createThumbnailContainer() {
     `
     return box
 }
+
 function createThumbnail() {
     const thumbnail = document.createElement("img");
     thumbnail.id = "thumbnail";
@@ -891,7 +902,6 @@ function createThumbnail() {
     return thumbnail
 }
 
-
 function createThumbnailCancel() {
     const icon = document.createElement("span")
     icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"  viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/></svg>`;
@@ -906,6 +916,7 @@ function createThumbnailCancel() {
     `;
     return icon
 }
+
 function createVideoContainer() {
     const box = document.createElement('div');
     box.id = "videoContainer";
@@ -918,6 +929,7 @@ function createVideoContainer() {
     `
     return box
 }
+
 function createRecordCancel() {
     const icon = document.createElement("span")
     icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"  viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/></svg>`;
@@ -966,7 +978,7 @@ async function startCapture() {
         //     console.error(err);
         //     return null;
         // }).then((stream) => {
-        //     console.log(stream)
+        //     if(window.location.host === "localhost:3000") console.log(stream)
         //     // Query the displaySurface value of the captured video track
         //     const [track] = stream.getVideoTracks();
         //     const displaySurface = track.getSettings().displaySurface;
@@ -1038,7 +1050,6 @@ function createRecorder(stream, mimeType) {
     return mediaRecorder;
 }
 
-
 function saveFile(recordedChunks) {
 
     const blob = new Blob(recordedChunks, {
@@ -1050,7 +1061,7 @@ function saveFile(recordedChunks) {
 
     downloadLink.href = URL.createObjectURL(blob);
     downloadLink.download = `${filename}.webm`;
-    console.log(downloadLink)
+    if(window.location.host === "localhost:3000") console.log(downloadLink)
 
     const video = document.createElement("video")
     video.id = "screenRecordVideo"
@@ -1076,6 +1087,7 @@ function saveFile(recordedChunks) {
     // URL.revokeObjectURL(blob); // clear from memory
     // document.body.removeChild(downloadLink);
 }
+
 function makeid(length) {
     let result = '';
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

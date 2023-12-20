@@ -91,7 +91,7 @@ function createShortTextQuestion(shortTextQuestion: any, parent: any) {
   input.style.borderColor = "#3b82f6";
   input.style.transition = "border-color 0.3s";
   input.addEventListener("change", (e: any) => {
-    console.log(e.target.value);
+    if (window.location.host === "localhost:3000") console.log(e.target.value);
     surveyFormFeedback.response.answers[parent.id] = e.target.value;
   });
   parent.appendChild(input);
@@ -108,7 +108,7 @@ function createLongTextQuestion(longTextQuestion: any, parent: any) {
   textarea.style.borderRadius = "4px";
   textarea.style.resize = "none";
   textarea.addEventListener("change", (e: any) => {
-    console.log(e.target.value);
+    if (window.location.host === "localhost:3000") console.log(e.target.value);
     surveyFormFeedback.response.answers[parent.id] = e.target.value;
   });
   parent.appendChild(textarea);
@@ -147,7 +147,7 @@ function createMultipleChoiceQuestion(
     });
     button.addEventListener("click", (e: any) => {
       e.preventDefault();
-      console.log(option);
+      if (window.location.host === "localhost:3000") console.log(option);
       surveyFormFeedback.response.answers[parent.id] = option;
     });
     choiceContainer.appendChild(button);
@@ -204,7 +204,8 @@ function createRatingQuestion(fieldDetails: any, parent: any) {
     });
 
     span.addEventListener("click", (e: any) => {
-      console.log(`Selected rating: ${rating}`);
+      if (window.location.host === "localhost:3000")
+        console.log(`Selected rating: ${rating}`);
       surveyFormFeedback.response.answers[parent.id] = rating;
     });
 
@@ -229,7 +230,7 @@ function createDropdownQuestion(dropdownQuestion: any, parent: any) {
     select.appendChild(optionElement);
   });
   select.addEventListener("change", (e: any) => {
-    console.log(e.target.value);
+    if (window.location.host === "localhost:3000") console.log(e.target.value);
     surveyFormFeedback.response.answers[parent.id] = e.target.value;
   });
 
@@ -258,7 +259,7 @@ function createButtonElement(text: any) {
   // });
 
   // button.addEventListener("click", (e) => {
-  //   // console.log(`Selected rating: ${rating}`);
+  //   // if(window.location.host === "localhost:3000") console.log(`Selected rating: ${rating}`);
   // });
   return button;
 }
@@ -298,7 +299,7 @@ function generateSurveyForm() {
   if (!customerId || customerId === "null" || customerId === "undefined") {
     return;
   }
-  console.log(dataFeedbackOpts);
+  if (window.location.host === "localhost:3000") console.log(dataFeedbackOpts);
   const { title, greetingMessage, questions } = dataFeedbackOpts;
 
   const surveyContainer = document.getElementById("okfeedback-survey");
@@ -372,7 +373,8 @@ function createSubmitButton() {
 
   submitButton.addEventListener("click", async (e) => {
     e.preventDefault();
-    console.log("Button clicked!", surveyFormFeedback);
+    if (window.location.host === "localhost:3000")
+      console.log("Button clicked!", surveyFormFeedback);
     // sumbit answer
     submitForm();
   });
@@ -390,7 +392,7 @@ function submitForm() {
     .then((response) => response.json())
     .then((data) => {
       // Handle the response data
-      console.log(data);
+      if (window.location.host === "localhost:3000") console.log(data);
     })
     .catch((error) => {
       // Handle any error that occurred during the request

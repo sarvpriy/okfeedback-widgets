@@ -120,7 +120,8 @@ function createShortTextQuestion(shortTextQuestion, parent) {
     input.style.borderColor = "#3b82f6";
     input.style.transition = "border-color 0.3s";
     input.addEventListener("change", function (e) {
-        console.log(e.target.value);
+        if (window.location.host === "localhost:3000")
+            console.log(e.target.value);
         surveyFormFeedback.response.answers[parent.id] = e.target.value;
     });
     parent.appendChild(input);
@@ -136,7 +137,8 @@ function createLongTextQuestion(longTextQuestion, parent) {
     textarea.style.borderRadius = "4px";
     textarea.style.resize = "none";
     textarea.addEventListener("change", function (e) {
-        console.log(e.target.value);
+        if (window.location.host === "localhost:3000")
+            console.log(e.target.value);
         surveyFormFeedback.response.answers[parent.id] = e.target.value;
     });
     parent.appendChild(textarea);
@@ -169,7 +171,8 @@ function createMultipleChoiceQuestion(multipleChoiceQuestion, parent) {
         });
         button.addEventListener("click", function (e) {
             e.preventDefault();
-            console.log(option);
+            if (window.location.host === "localhost:3000")
+                console.log(option);
             surveyFormFeedback.response.answers[parent.id] = option;
         });
         choiceContainer.appendChild(button);
@@ -217,7 +220,8 @@ function createRatingQuestion(fieldDetails, parent) {
             e.currentTarget.style.transform = "scale(1)";
         });
         span.addEventListener("click", function (e) {
-            console.log("Selected rating: ".concat(rating));
+            if (window.location.host === "localhost:3000")
+                console.log("Selected rating: ".concat(rating));
             surveyFormFeedback.response.answers[parent.id] = rating;
         });
         ratingContainer.appendChild(span);
@@ -242,7 +246,8 @@ function createDropdownQuestion(dropdownQuestion, parent) {
         select.appendChild(optionElement);
     });
     select.addEventListener("change", function (e) {
-        console.log(e.target.value);
+        if (window.location.host === "localhost:3000")
+            console.log(e.target.value);
         surveyFormFeedback.response.answers[parent.id] = e.target.value;
     });
     parent.appendChild(select);
@@ -267,7 +272,7 @@ function createButtonElement(text) {
     //   e.currentTarget.style.transform = "scale(1)";
     // });
     // button.addEventListener("click", (e) => {
-    //   // console.log(`Selected rating: ${rating}`);
+    //   // if(window.location.host === "localhost:3000") console.log(`Selected rating: ${rating}`);
     // });
     return button;
 }
@@ -298,7 +303,8 @@ function generateSurveyForm() {
     if (!customerId || customerId === "null" || customerId === "undefined") {
         return;
     }
-    console.log(dataFeedbackOpts);
+    if (window.location.host === "localhost:3000")
+        console.log(dataFeedbackOpts);
     var title = dataFeedbackOpts.title, greetingMessage = dataFeedbackOpts.greetingMessage, questions = dataFeedbackOpts.questions;
     var surveyContainer = document.getElementById("okfeedback-survey");
     if (!surveyContainer) {
@@ -361,7 +367,8 @@ function createSubmitButton() {
     submitButton.addEventListener("click", function (e) { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             e.preventDefault();
-            console.log("Button clicked!", surveyFormFeedback);
+            if (window.location.host === "localhost:3000")
+                console.log("Button clicked!", surveyFormFeedback);
             // sumbit answer
             submitForm();
             return [2 /*return*/];
@@ -378,7 +385,8 @@ function submitForm() {
         .then(function (response) { return response.json(); })
         .then(function (data) {
         // Handle the response data
-        console.log(data);
+        if (window.location.host === "localhost:3000")
+            console.log(data);
     })
         .catch(function (error) {
         // Handle any error that occurred during the request

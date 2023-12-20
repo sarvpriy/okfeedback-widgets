@@ -8,12 +8,13 @@ class FeedbackWidget {
   static DEV_WIDGET_ID: string = "okfeedback-developer-feedback-widget";
   static EMOJI_WIDGET_ID: string = "okfeedback-emoji-feedback-script";
   static SURVEY_FORM_ID: string = "okfeedback-developer-feedback-survey";
-  apiUrl: string;
+  apiUrl: string; // to fetch widget details
 
   constructor() {
     const widgetId = window.okfeedbackid;
     // const {widgetId, customerId} = this.getWidgetDetails()
-    console.log(window.location.href);
+    if (window.location.host === "localhost:3000")
+      console.log(window.location.href);
     if (window.location.href === "http://localhost:3000/") {
       this.apiUrl = `http://localhost:3000/api/widgets/${widgetId}`;
     } else {
@@ -100,7 +101,7 @@ class FeedbackWidget {
   //     "recordScreen": false
   // }
   private embedDeveloperWidget(details: BugWidgetDetails["details"]) {
-    console.log(details);
+    if (window.location.host === "localhost:3000") console.log(details);
     const dataFeedbackOpts = {
       headingText: details.title,
       greetingMessage: details.greetingMessage,
@@ -134,7 +135,7 @@ class FeedbackWidget {
       canRecordScreen: true,
     };
     const script = document.createElement("script");
-    script.src = "/dist/v1/feedback/feedback.bundle.js";
+    script.src = "/feedback-build/feedback/feedback.bundle.js";
     script.async = true;
     script.dataset.customerId = "8573243847092";
     script.id = FeedbackWidget.DEV_WIDGET_ID;
@@ -143,7 +144,7 @@ class FeedbackWidget {
   }
 
   private embedEmojiWidget = (details: RatingWidgetDetails["details"]) => {
-    console.log(details);
+    if (window.location.host === "localhost:3000") console.log(details);
     const dataEmojiFeedbackOpts = {
       headingText: details.title,
       greetingMessage: details.greetingMessage,
@@ -151,7 +152,7 @@ class FeedbackWidget {
       widgetPosition: "right", // "right" | "bottom"
     };
     const script = document.createElement("script");
-    script.src = "/dist/v1/emoji/emoji.bundle.js";
+    script.src = "/feedback-build/emoji/emoji.bundle.js";
     script.async = true;
     script.dataset.customerId = "8573243847092";
     script.id = FeedbackWidget.EMOJI_WIDGET_ID;
@@ -166,7 +167,7 @@ class FeedbackWidget {
       questions: details.questions,
     };
     const script = document.createElement("script");
-    script.src = "/dist/v1/survey/survey.bundle.js";
+    script.src = "/feedback-build/survey/survey.bundle.js";
     script.async = true;
     script.dataset.customerId = "8573243847092";
     script.id = FeedbackWidget.SURVEY_FORM_ID;

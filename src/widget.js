@@ -57,7 +57,8 @@ var FeedbackWidget = /** @class */ (function () {
             }
         };
         this.embedEmojiWidget = function (details) {
-            console.log(details);
+            if (window.location.host === "localhost:3000")
+                console.log(details);
             var dataEmojiFeedbackOpts = {
                 headingText: details.title,
                 greetingMessage: details.greetingMessage,
@@ -65,7 +66,7 @@ var FeedbackWidget = /** @class */ (function () {
                 widgetPosition: "right", // "right" | "bottom"
             };
             var script = document.createElement("script");
-            script.src = "/dist/v1/emoji/emoji.bundle.js";
+            script.src = "/feedback-build/emoji/emoji.bundle.js";
             script.async = true;
             script.dataset.customerId = "8573243847092";
             script.id = FeedbackWidget.EMOJI_WIDGET_ID;
@@ -79,7 +80,7 @@ var FeedbackWidget = /** @class */ (function () {
                 questions: details.questions,
             };
             var script = document.createElement("script");
-            script.src = "/dist/v1/survey/survey.bundle.js";
+            script.src = "/feedback-build/survey/survey.bundle.js";
             script.async = true;
             script.dataset.customerId = "8573243847092";
             script.id = FeedbackWidget.SURVEY_FORM_ID;
@@ -88,7 +89,8 @@ var FeedbackWidget = /** @class */ (function () {
         };
         var widgetId = window.okfeedbackid;
         // const {widgetId, customerId} = this.getWidgetDetails()
-        console.log(window.location.href);
+        if (window.location.host === "localhost:3000")
+            console.log(window.location.href);
         if (window.location.href === "http://localhost:3000/") {
             this.apiUrl = "http://localhost:3000/api/widgets/".concat(widgetId);
         }
@@ -188,7 +190,8 @@ var FeedbackWidget = /** @class */ (function () {
     //     "recordScreen": false
     // }
     FeedbackWidget.prototype.embedDeveloperWidget = function (details) {
-        console.log(details);
+        if (window.location.host === "localhost:3000")
+            console.log(details);
         var dataFeedbackOpts = {
             headingText: details.title,
             greetingMessage: details.greetingMessage,
@@ -222,7 +225,7 @@ var FeedbackWidget = /** @class */ (function () {
             canRecordScreen: true,
         };
         var script = document.createElement("script");
-        script.src = "/dist/v1/feedback/feedback.bundle.js";
+        script.src = "/feedback-build/feedback/feedback.bundle.js";
         script.async = true;
         script.dataset.customerId = "8573243847092";
         script.id = FeedbackWidget.DEV_WIDGET_ID;
